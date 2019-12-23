@@ -1,0 +1,2422 @@
+\documentclass[12pt]{article}
+
+\makeatletter
+\title{Appunti di LCI}\let\Title\@title
+\author{Flavio Ascari}\let\Author\@author
+\date{\today}\let\Date\@date
+
+\usepackage[italian]{babel}
+\usepackage[margin=2cm,bottom=2.3cm]{geometry}
+
+\usepackage{latex-flaviopkg/flaviopkg}
+\usepackage{enumitem}
+\usepackage{subfig}
+\usepackage{multirow}
+\usepackage{tikz}
+\usetikzlibrary{automata,positioning,arrows}
+\usepackage{tikz-qtree}
+
+\renewcommand{\baselinestretch}{1.15}
+
+% Per i teoremi numerati per subsection
+\numberwithin{theorem}{subsection}
+
+% indentazione
+\setlength{\parindent}{0pt}
+
+% Per l'indice con i link
+\usepackage{hyperref}
+\hypersetup{linktocpage}
+
+\newcommand{\setN}{\mathbb{N}}
+\newcommand{\upchi}{\raisebox{2pt}{$\chi$}}
+\newcommand{\pow}[1]{\mathcal{P}(#1)}
+
+\begin{document}
+
+\begin{center}
+	\vspace*{0,5 cm}
+	{\Huge \textsc{\Title}} \\
+	\vspace{0,5 cm}
+	\textsc{\Author} \
+	\textsc{\Date}
+	\thispagestyle{empty}
+	\vspace{0,7 cm}
+\end{center}
+\small
+
+\tableofcontents
+\clearpage
+
+\section{Linguaggi formali}
+Motivazioni blablabla push-button e crei il frontend dei compilatori etc.
+
+\begin{definition}[Alfabeto]
+	Insieme finito non vuoto, i cui elementi vengono detti \textit{simboli}.
+\end{definition}
+Solitamente si indica con $\Lambda$, $\Sigma$ o $A$.
+\begin{definition}[Stringa]
+	Una stringa sull'alfabeto $\Lambda$ è una sequenza finita di simboli di $\Lambda$. La stringa vuota si indica con $\epsilon$.
+\end{definition}
+Indicheremo con $\Lambda^i$ l'insieme delle stringhe sull'alfabeto $\Lambda$ di lunghezza minore o uguale a $i$, e con la stella di Kleene $\Lambda^*$ l'insieme di tutte le stringhe finite su $\Lambda$. 
+Con $\Lambda^*$ indica l'insieme di tutte le possibili stringhe sull'alfabeto $\Lambda$.
+\begin{definition}[Linguaggio formale]
+	Un linguaggio formale $L$ sull'alfabeto $\Lambda$ è $L \subseteq \Lambda^*$.
+\end{definition}
+Quando parliamo di linguaggi formali è perché vogliamo porre l'attenzione sull'aspetto sintattico e non su quello semantico.
+
+Utilizzeremo anche la notazione standard per indicare le operazioni su stringhe. Date due stringhe $\alpha$ e $\beta$ si indica con $\alpha \beta$ (o più raramente con $\alpha . \beta$) la stringa ottenuta per concatenazione. Con $\alpha^n$ si indica la stringa ottenuta concatenando $\alpha$ con se stessa $n$ volte. Con la notazione $s[i]$ si indica l'$i$-esimo carattere della stringa $s$ e con $\vert s \vert$ la lunghezza della stringa. Useremo la notazione $s = as'$ per indicare che la stringa $s$ è formata dal carattere $a$ concatenato alla stringa $s'$.
+
+Inoltre utilizzeremo una notazione anche per le operazioni tra linguaggi: oltre alle classiche operazioni insiemistiche di unione, intersezione e complementare definiamo anche la concatenazione di linguaggi e la chiusura. Dati due linguaggi $L_1$ ed $L_2$ la loro concatenazione è $L_1 . L_2 = \{ \alpha \beta \ \vert \ \alpha \in L_1 \land \beta \in L_2 \}$. Con $L^n$ si indica la concatenazione di $L$ con se stesso $n$ volte (e $L^0 = \{ \epsilon \}$). Le due chiusure di $L$ sono $L^* = \bigcup\limits_{i \ge 0} L^i$ (l'operatore $\,^*$ si chiama ``stella di Kleene") ed $L^+ = \bigcup\limits_{i \ge 1} L^i$. Notare che $L^* = L^+ \cup \{ \epsilon \}$.
+
+Per indicare un linguaggio ci sono tre modi principali, che sono notazioni effettive (ovvero che permettono di decidere se una certa stringa fa parte del linguaggio o meno):
+\begin{itemize}
+	\item metodo generativo (o sintetico): $L$ viene visto come l'insieme delle stringhe generate da una grammatica.
+	\item metodo riconoscitivo (o analitico): $L$ viene visto come l'insieme delle stringhe riconosciute da un automa.
+	\item metodo algebrico: $L$ viene visto come l'insieme delle soluzioni di un sistema algebrico.
+\end{itemize}
+
+\newpage
+\subsection{Grammatiche}
+\begin{definition}[Grammatica]
+	Una grammatica è una quadrupla $(N, \Lambda, S, \mathcal{P})$ in cui:
+	\begin{itemize}
+		\item $N$ è l'insieme dei simboli non terminali.
+		\item $\Lambda$ è l'alfabeto dei \textit{simboli terminali}, ed è l'alfabeto del linguaggio generato dalla grammatica.
+		\item $S \in N$ è il simbolo iniziale.
+		\item $P$ l'insieme delle \textit{produzioni}, ovvero regole della forma $\alpha \rightarrow \beta$ con $\alpha\in (N \cup \Lambda)^+ \setminus \Lambda^+$ e $\beta \in (N \cup \Lambda)^*$.
+	\end{itemize}
+	$N$ si chiama anche insieme delle \textit{categorie sintattiche}.
+\end{definition}
+
+La semantica delle grammatiche è quella di "produrre" stringhe del linguaggio in modo incrementale. Si parte dal simbolo iniziale $S$ e, avendo la regola $\alpha \rightarrow \beta$, si può ottenere da una delle stringhe già ottenute della forma $\delta\alpha\mu$, ottenendo così $\delta\beta\mu$ come nuova stringa. Le stringhe del linguaggio sono quelle composte solo da simboli terminali.
+
+\begin{definition}[Linguaggio generato]
+	Data una grammatica $G$ con insieme dei simboli terminali $\Lambda$ e produzioni $P$, definiamo $V_G = \bigcup\limits_{i \ge 0} V_i$, dove $V_0 = \{ S \}$ e $V_{i+1} = \{ \delta\beta\mu \ \vert \ \alpha \rightarrow \beta \in P \land \delta\alpha\mu \in V_i \}$. Il linguaggio generato dalla grammatica è $L(G) = V_G \cap \Lambda^*$.
+\end{definition}
+
+Una definizione alternativa di linguaggio generato passa dalla relazione di generazione definita da una grammatica:
+\begin{definition}[Linguaggio generato]
+	Data una grammatica $G$, la relazione $\Rightarrow_G$ si definisce come $\gamma\alpha\delta \Rightarrow_G \gamma\beta\delta$ se e solo se $\alpha \rightarrow \beta \in P$, e sia $\Rightarrow_G^*$  la sua chiusura riflessiva e transitiva.
+	
+	Allora $L(G) = \lbrace w \in \Lambda^* \svert S \Rightarrow_G^* w \rbrace$
+\end{definition}
+
+È facile mostrare che le due definizioni date sono equivalenti, e viene lasciato come esercizio al lettore.
+
+\begin{example}
+	Il linguaggio $L=\{ a^{2n} \ \vert \ n \ge 0 \} = \{ \epsilon, aa, aaaa, \dots \}$ sull'alfabeto $\Lambda = \{ a \}$ viene generato dalla semplice grammatica $(\{ S, a\}, \{ a \}, S, \{ S \rightarrow \epsilon, S \rightarrow Saa \})$. Per indicare più comodamente la grammatica indicheremo con $S$ il simbolo iniziale e scriveremo solo le regole, sottintendendo categorie sintattiche e insieme dei terminali, quindi scriveremo questa grammatica come
+	\begin{align*}
+		S &\rightarrow \epsilon \\
+		S &\rightarrow Saa
+	\end{align*}
+	
+	Inoltre uniremo le regole con la stessa stringa a sinistra, separando con una barra verticale le varie stringhe che si possono ottenere a destra. Quindi la grammatica precedente diventerà semplicemente
+	\begin{align*}
+		S &\rightarrow \epsilon \ \vert \ Saa
+	\end{align*}
+\end{example}
+
+\begin{definition}
+	Due grammatiche si dicono equivalenti se generano lo stesso linguaggio.
+\end{definition}
+
+Vediamo ora un primo interessante teorema:
+\begin{prop}\label{th:grammar-rec-enum}
+	Il linguaggio generato da una qualsiasi grammatica è ricorsivamente enumerabile.
+\end{prop}
+\begin{proof}
+	Presa una MdT con alfabeto $\Lambda \cup \{ b \}$ posso programmarla in modo che applichi tutte le regole di produzione della grammatica possibili su tutte le stringhe di input. L'esecuzione di questa MdT sull'insieme $V_i$ della definizione di linguaggio generato permette di ottenere $V_{i+1}$.
+	
+	Il linguaggio generato è quindi l'immagine della MdT che preso in input $n$ inizia a scorrere $V_i$, se questo contiene l'$n$-esima stringa la ritorna altrimenti costruisce $V_{i+1}$ e riparte con $n - |V_i|$, eseguita con input iniziale $n$ e $V_0$.
+\end{proof}
+
+Vediamo ora una classificazione delle grammatiche in base ad alcune restrizioni sulle produzioni che possono avere. Sia $V = N \cup \Lambda$:
+
+\vspace{0.3cm}
+\begin{tabular}{ *{1}{c} | *{2}{l} | *{1}{l} | *{1}{l} }
+	Grammatiche & \multicolumn{2}{c|}{Produzioni} & Linguaggi & Riconosciuti\\
+	\hline
+	tipo 0 & $\alpha \rightarrow \beta$ & $\alpha, \beta \in V^*$ & generali & automi di Turing\\
+	tipo 1 & $\alpha A \beta \rightarrow \alpha \delta \beta$ & $\alpha, \beta, \delta \in V^*, A \in N$ & contestuali & automi di Turing \\
+	tipo 2 & $A \rightarrow \alpha$ & $\alpha \in V^*, A \in N$ & liberi & automi a pila\\
+	tipo 3 & $A \rightarrow aB$ & $a \in \Lambda, A, B \in N$ & regolari & automi a stati finiti\\
+\end{tabular}
+\vspace{0.3cm}
+
+Oltre a queste semplici definizioni di grammatiche ve n'è un'altra, quella di grammatica monotona: una grammatica monotona ha produzioni generali del tipo $\alpha \rightarrow \beta$ con però il vincolo $\abs{\alpha} \le \abs{\beta}$.
+È interessante osservare che tutte le grammatiche libere sono monotone, e vale il seguente lemma:
+\begin{lemma}
+	Sia $G$ una grammatica monotona. Allora $L(G)$ è ricorsivo.
+\end{lemma}
+\begin{proof}[Idea]
+	L'idea è di generare tutte le stringhe applicando ogni volta tutte le produzioni come nella dimostrazione della proposizione \ref{th:grammar-rec-enum}. Il punto che garantisce la terminazione è che le stringhe generate non calano mai di lunghezza, quindi una volta che non vi sono più stringhe contenenti non terminali più corte della stringa da cercare si è certi che questa non è nel linguaggio.
+\end{proof}
+%
+%\begin{prop}
+%	Data una stringa $s$ il problema di dire se appartiene o meno ad un linguaggio libero è decidibile.
+%\end{prop}
+%\begin{proof}
+%	Considerando una grammatica $G$ che genera il linguaggio in forma normale di Chomsky, dato un albero di derivazione di altezza $h$ so che il numero di foglie di quest'albero è almeno $h-1$. Similmente a prima, il numero di alberi di altezza al più $\vert s \vert + 1$ è finito, quindi è possibile controllarli tutti e verificare se $s$ è il risultato di uno di questi.
+%\end{proof}
+%
+%\begin{proof}[Dimostrazione alternativa]	
+%	Data una grammatica $G$ per il linguaggio con alfabeto $\Lambda$, definisco $T_0 = \{ S \}$ e $T_{m+1} = T_m \cup \{ \delta\alpha\mu \ \vert \ A \rightarrow \alpha \in P \land \delta A\mu \in T_m \land \vert \delta\alpha\mu \vert \le n \}$.
+%	
+%	Se per un qualche $m$ vale $T_m = T_{m-1}$ allora per ogni $k \ge m$ vale $T_k = T_{m-1}$ per induzione dalla definizione di $T_k$. Dato che le stringhe su $\Lambda$ di lunghezza al più $n$, detto $v = \vert \Lambda \vert$, sono $N = 1 + v + v^2 + ... + v^n$, e che $\vert T_m \vert \ge \vert T_{m-1} \vert$ devono esistere $i, j \le N + 1$ tali che $\vert T_i \vert = \vert T_j \vert$, da cui l'uguaglianza delle cardinalità di tutti gli insiemi in mezzo e quindi proprio l'uguaglianza degli insiemi stessi per via delle inclusioni.
+%	
+%	Una volta che $T_m = T_{m-1}$ allora $T_m$ contiene tutte le stringhe generate dal linguaggio di lunghezza $\le n$, quindi si può controllare se questo contiene $s$.
+%\end{proof}
+
+Il motivo per cui non sono state inserite nella tabella precedente è che le grammatiche monotone si rivelano equivalenti alle grammatiche contestuali (di tipo 1), ma non dimostreremo questo fatto. Basti sapere però che da questo segue che anche le grammatiche contestuali generano linguaggi ricorsivi (e non solo ricorsivamente enumerabili).
+
+Vedremo successivamente che tutte queste inclusioni sono strette, ma per ora ci accontentiamo di osservare che mentre i linguaggi generali (tipo 0) sono tutti quelli ricorsivamente enumerabili, in virtù del lemma precedente e di quanto affermato senza dimostrazione, i linguaggi contestuali sono solo quelli ricorsivi, quindi questa inclusione è stretta.
+
+Vorremo ora un modo di verificare se una certa stringa viene generata da una certa grammatica o meno. Vedremo successivamente come costruire degli appositi automi che accettano solo le stringhe di un certo linguaggio, ma per ora ci limiteremo agli
+
+\begin{definition}[Albero di derivazione]
+	Un albero di derivazione, detto anche \textit{parsing tree} o \textit{syntax tree}, è un albero che mostra una possibile derivazione di una certa stringa in una certa grammatica libera. In questo albero, ad ogni nodo è associato un simbolo di $V$ e i figli corrispondono all'applicazione di una certa produzione della grammatica.
+	
+	La radice dell'albero è un nodo con simbolo $S$, le foglie sono associate solo a simboli terminali, la successione dei simboli delle foglie è uguale alla stringa cercata e per ogni nodo con simbolo una categoria sintattica i figli corrispondono ai caratteri di una produzione che ha quel simbolo come $\alpha$: ovvero se ho un nodo con simbolo $A$ e la produzione $A \rightarrow aAb$ i figli del nodo possono essere $a$, $A$ e $b$.
+\end{definition}
+L'albero di derivazione è un modo per visualizzare l'ordine di applicazione delle produzioni di una grammatica per generare una certa stringa.
+
+\begin{definition}[Grammatica ambigua]
+	Una grammatica è ambigua se esiste almeno una stringa per cui ci sono due successioni diverse di applicazioni di produzioni che la generano. Se la grammatica è libera da contesto, una definizione alternativa è che per quella stringa esistono due alberi di derivazione diversi.
+\end{definition}
+
+Data un grammatica ambigua ci si può chiedere se in generale esista un'altra grammatica non ambigua per quel linguaggio. Questo in generale non è vero, e forniamo qui un esempio di linguaggio inerentemente ambiguo (ovvero tale per cui tutte le sue grammatiche sono ambigue), ma senza dimostrazione:
+\begin{example}
+	\[ L = \lbrace a^n b^m c^m d^n \rbrace \cup \lbrace a^n b^n c^m d^m \rbrace \]
+	è un linguaggio libero inerentemente ambiguo.
+\end{example}
+
+Motivazioni: scanner e parser blablabla linguaggi regolari e liberi blablabla operazione push-button blablabla.
+In particolare per lo scanner (analizzatore lessicale, che riconosce i token) vogliamo usare un linguaggio regolare e per il parser (analizzatore sintattico) uno libero (in realtà ne useremo una sottoclasse più efficiente).
+
+\newpage
+\subsection{Linguaggi regolari}
+\begin{definition}[Grammatica regolare]
+	Una grammatica si dice regolare destra se ha solo produzioni del tipo  $A \rightarrow aB$, $A \rightarrow a$ o $A \rightarrow \epsilon$ con $a \in \Lambda$ e $A, B \in N$. Si dice regolare sinistra se le produzioni sono del tipo $A \rightarrow Ba$, $A \rightarrow a$ o $A \rightarrow \epsilon$.
+	
+	Un linguaggio generato da una grammatica regolare si dice regolare.
+\end{definition}
+Le grammatiche regolari in un certo senso possono solo ``aggiungere caratteri da un lato della stringa", senza contesto.
+
+Un modo alternativo per descrivere linguaggi regolari sono le espressioni regolari.
+\begin{definition}[Espressioni regolare]
+	Un'espressione regolare sull'alfabeto $\Lambda = \{ a_1, a_2, ..., a_n \}$ è una stringa del linguaggio generato dalla grammatica
+	\begin{align*}
+	E &\rightarrow \ \emptyset \ \vert \ \epsilon\ \vert \ a_1 \ \vert \ ... \ \vert \ a_n \\
+	E &\rightarrow \ E + E \ \vert \ E . E \ \vert \ (E)^*
+	\end{align*}
+	con $E$ come simbolo iniziale.
+\end{definition}
+
+La semantica delle espressioni regolari è di denotare un linguaggio. Il linguaggio rappresentato viene definito ricorsivamente:
+\begin{itemize}
+	\item $L[\emptyset] = \{ \}$
+	\item $L[\epsilon] = \{ \epsilon \}$
+	\item $L[a_i] = \{ a_i \}$
+	\item $L[E_1 + E_2] = L[E_1] \cup L[E_2]$
+	\item $L[E_1 . E_2] = L[E_1] . L[E_2]$
+	\item $L[E^*] = (L[E])^*$
+\end{itemize}
+
+Solitamente il $.$ che indica la concatenazione viene omesso, semplicemente concatenando le due stringe $E_1$ ed $E_2$.
+
+\begin{example}
+	Consideriamo il linguaggio $L = \{ a^n b^m \ \vert \ n \ge 0, m > 0 \}$. Questo linguaggio è regolare, infatti viene generato dalla grammatica
+	\begin{align*}
+		S &\rightarrow aS \ \vert \ B \\
+		B &\rightarrow bB \ \vert \ b
+	\end{align*}
+	
+	Un'espressione regolare per questo linguaggio è
+	\[
+	(a)^*.b.(b)^*
+	\]
+	scritta più semplicemente omettendo i $.$ come
+	\[
+	(a)^*b(b)^*
+	\]
+\end{example}
+
+La dimostrazione dell'equivalenza tra espressioni regolari e grammatiche regolare viene rimandata dato che risulta più semplice una volta introdotti gli automi.
+
+\begin{definition}[Automa a stati finiti]
+	Un automa deterministico a stati finiti (detto anche ASF o DFSA, dall'inglese) è una quintupla $( Q, A, t, q_0, F )$ dove
+	\begin{itemize}
+		\item $Q$ è l'insieme degli stati
+		\item $A$ è l'alfabeto del linguaggio riconosciuto dall'automa
+		\item $t: Q \times A \rightarrow Q$ è la funzione di transizione
+		\item $q_0 \in Q$ è lo stati iniziale
+		\item $F \subseteq Q$ è l'insieme degli stati finali
+	\end{itemize}
+	La funzione $t$ deve essere totale.
+\end{definition}
+
+Solitamente un DFSA viene rappresentato dal grafo di transizione, in cui ogni stato è un nodo e, per ogni terna $t(q, a) = q'$ si aggiunge un arco da $q$ a $q'$ con etichetta $a$. Il doppio cerchio intorno ad un nodo indica che quello stato è finale, mentre per indicare lo stato iniziale si aggiunge un arco che parte dal nulla (o da una scritta) e arriva in quel nodo.
+
+La semantica di un automa è quella di "riconoscere" un linguaggio, ovvero data una stringa di input rispondere se appartiene o meno al linguaggio ("accettare" quella stringa) riconosciuto dall'automa.
+
+Il modo in cui questo viene fatto è di partire dallo stato iniziale e leggere un carattere della stringa alla volta, spostandosi nello stato che si raggiunge seguendo l'arco uscente dallo stato attuale con etichetta il carattere letto. Se dopo aver letto l'ultimo carattere della stringa l'automa si trova in uno stato finale la stringa viene accettata, altrimenti rifiutata.
+
+\begin{example}
+	L'ASF che riconosce il linguaggio dell'esempio precedente è
+	
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+		\node[state,initial] (q_0) {$q_0$};
+		\node[state,accepting] (q_1) [right=of q_0] {$q_1$};
+		\node[state] (f) [below=of q_1] {$f$};
+		\path[->] 
+		(q_0) edge [loop above] node {a} (q_0)
+		edge  node {b} (q_1)
+		(q_1) edge  [loop above] node {b} (q_1)
+		edge node {a} (f)
+		(f) edge [loop left] node {a,b} (f);
+	\end{tikzpicture}
+\end{example}
+
+\begin{definition}[Funzione di transizione generalizzata]
+	La funzione di transizione $i$-esima di un automa $\{ Q, A, t, q_0, F \}$ si definisce come $t_0(q, \epsilon) = q$, $t_1 = t$ e per $i > 1$ si definisce $t_i : Q \times A^i \rightarrow Q$ come $t_i(q, s) = q'$ se $s = as'$, $t_{i-1}(q, s') = q''$ e $t(q'', a) = q'$.
+	
+	La funzione di transizione generalizzata $t^*: Q \times A^* \rightarrow Q$ si definisce come $t^*(q, s) = t_{\vert s \vert}(q, s)$.
+\end{definition}
+
+Si possono dimostrare alcuni semplici lemmi sulle funzioni di transizione (per esempio, se $t_i(q_1, s_1) = q_2$ e $t_j(q_2, s_2) = q_3$ allora $t_{i+j}(q_1, s_1 s_2) = q_3$), ma vengono lasciati per esercizio.
+
+\begin{definition}
+	Un automa $\mathcal{A}$ riconosce (o accetta) una stringa $s$ se $t^*(q_0, s) \in F$. Altrimenti si dice che non accetta (o rifiuta) la stringa.
+	
+	Si dice che $\mathcal{A}$ riconosce un linguaggio $L$ se accetta tutte e sole le stringhe appartenenti a quel linguaggio. In questo caso si dice anche che $L = L(\mathcal{A})$
+	
+	Due automi si dicono equivalenti se riconoscono lo stesso linguaggio.
+\end{definition}
+
+\subsubsection{Automa minimo}
+In generale più DFSA riconoscono lo stesso linguaggio. Una domanda abbastanza naturale, anche per ragioni di efficienza, è di trovare il ``minimo" DFSA che riconosce un certo linguaggio. Come definizione di minimo scegliamo l'automa con il numero minimo di stati. Vogliamo quindi dare un procedimento algoritmico per trovarlo a partire da un generico DFSA che riconosce un certo linguaggio.
+
+Per introdurre questo DFSA minimo vorremmo dare una caratterizzazione più astratta dei DFSA, perciò introduciamo la seguente
+\begin{definition}[Relazione di equivalenza invariante destra]
+	Sia $\mathcal{R}$ una relazione di equivalenza su $\Lambda^*$ con un numero finito di classi di equivalenza. $\mathcal{R}$ si dice invariante destra se
+	\[
+	\forall x, y, z \in \Lambda^* \,.\, x \mathcal{R} y \implies xz \mathcal{R} yz
+	\]
+\end{definition}
+
+Intuitivamente questo significa che se due stringhe sono in relazione, allora anche qualsiasi loro ``futuro" lo è. Questa idea formalizza l'intuzione per cui in un FSA, una volta raggiunto uno stato, non è importante come ci si è arrivati per proseguire nell'accettazione di una stringa.
+
+\begin{theorem}[Myhill-Nerode]\label{th:myhill-nerode}
+	Un linguaggio $L$ viene accettato da un DFSA se e solo se è l'unione di alcune classi di equivalenza di una relazione invariante destra.
+\end{theorem}
+\begin{proof}
+	L'idea è di far corrispondere stati dell'automa e classi di equivalenza. La dimostrazione delle due frecce è separata, ma si basa sulla stessa costruzione.
+	
+	Sia $\mathcal{A} = ( Q, \Lambda, t, q_0, F )$ un DFSA che accetta $L$, e sia . Definisco la relazione di equivalenza $\mathcal{R}$ come segue:
+	\[
+	\forall x, y \in \Lambda^* \,.\, x \mathcal{R} y \iff t^*(q_0, x) = t^*(q_0, y)
+	\]
+	
+	ovvero se le due stringhe raggiungono lo stesso stato quando analizzate dall'automa $\mathcal{A}$. Questa relazione è invariante destra:
+	\[
+	t^*(q_0, xz) = t^*(t^*(q_0, x), z) = t^*(t^*(q_0, y), z) = t^*(q_0, yz)
+	\]
+	ed
+	\[
+	L = \lbrace w \in \Lambda^* \svert t^*(q_0, w) \in F \rbrace = \bigcup\limits_{f \in F} \lbrace w \in \Lambda^* \svert t^*(q_0, w) = f \rbrace
+	\]
+	che è un'unione di classi di equivalenza.
+	
+	Viceversa sia $\mathcal{R}$ una relazione invariante destra su $\Lambda^*$, e siano $Q$ le sue classi di equivalenza. Posso allora definire un automa $\mathcal{A} = (Q, \Lambda, t, q_0, F)$ che ha come stati proprio le classi di equivalenza. $q_0$ è la classe di equivalenza che contiene la stringa vuota $\epsilon$, ed $F$ è l'insieme delle classi di equivalenza di cui $L$ è l'unione. La funzione di tranizione $t$ si definisce come segue:
+	se $x \in q$ e $a \in \Lambda$, la stringa $xa$ deve appartenere ad una certa classe di equivalenza, sia essa $q'$. Allora $t(q, a) = q'$. Questa è una buona definizione: prese due stringhe $x, y \in q$, dato che $\mathcal{R}$ è invariante destra, per ogni $a \in \Lambda$ deve valere che $xa \mathcal{R} ya$, quindi $xa, ya \in q'$, quindi la definizione di $t$ non dipende dalla scelta di $x \in q$.
+\end{proof}
+
+Notare che la costruzione data dell'automa $\mathcal{A}$ a partire dalla relazione $\mathcal{R}$ non dipende dal linguaggio se non nella definizione di $F$: questo punto sarà importante nella dimostrazione della correttezza dell'algoritmo che minimizza un DFSA.
+
+Voglio ora introdurre una particolare relazione, quella minima per numero di classi di equivalenza. Dato che l'automa corrispondente ad una certa relazione ha un numero di stati pari al numero di classi di equivalenza della relazione, a questa corrisponde l'automa minimo.
+
+\begin{lemma}\label{th:tilde-inv-destra}
+	Sia $\sim$ la relazione definita come
+	\[
+	x \sim y \iff \forall w \in \Lambda^* \,.\quad ( xw \in L \iff yw \in L)
+	\]
+	Allora $\sim$ è una relazione invariante destra tale che $L$ è l'unione di alcune sue classi di equivalenza ed ha il minimo numero di classi di equivalenza tra quelle con questa proprietà.
+\end{lemma}
+\begin{proof}
+	$\sim$ è invariante destra: siano $x \sim y$, e sia $z$ una stringa arbitraria. Allora
+	\[
+	x \sim y \iff \forall w \,.\; (xw \in L \iff yw \in L) \implies \forall w \,.\; (xzw \in L \iff yzw \in L) \iff xz \sim yz
+	\]
+
+	$L$ è l'unione di alcune classi di equivalenza di $\sim$: se $x \in L$ e $x \sim y$ allora anche $y \in L$ perché, con $w = \epsilon$ si ha che $x = x\epsilon \in L \iff y \epsilon \in L$, quindi $y \in L$.
+	
+	Si consideri una generica relazione invariante destra $\mathcal{R}$ tale che $L$ sia l'unione di alcune sue classi di equivalenza. Allora
+	\[
+	x \mathcal{R} y \iff \forall z \,.\; xz \mathcal{R} yz \implies \forall z \,.\; (xz \in L \iff yz \in L) \implies x \sim y
+	\]
+	perciò le classi di equivalenza di $\mathcal{R}$ sono un raffinamento di quelle di $\sim$, e perciò o è la stessa relazione o ha più classi di equivalenza.
+\end{proof}
+
+\begin{remark}
+	Dato che $\sim$ è l'unica relazione con il numero minimo di classi di equivalenza, per la costruzione del teorema \ref{th:myhill-nerode} si osserva che l'automa minimo è unico in quanto ogni automa corrisponde ad una relazione di equivalenza con tante classi quante il numero di stati dell'automa e $\sim$ è l'unica con il numero minimo.
+\end{remark}
+
+L'algoritmo per minimizzare un DFSA segue la seguente idea: dato il DFSA $\mathcal{A}$ si definisce una relazione di equivalenza molto grossolana tale che $L(\mathcal{A})$ sia l'unione di alcune sue classi di equivalenza; poi si raffina la relazione mantenendo questa proprietà finché non diventa invariante destra. A questo punto si verifica che la relazione ottenuta è la $\sim$ definita nel precedente lemma, e così si ottiene il DFSA minimo.
+
+L'algoritmo segue, descritto in pseudocodice. L'input è  $\mathcal{A} = ( Q, \Lambda, t, q_0, F )$
+\begin{minted}{C}
+i = 0
+P[-1] = {}
+P[0] = { F, Q - F }
+while (P[i] != P[i-1]) {
+	P[i+1] = {}
+	for (G in P[i]) {
+		partiziona G in H0, H1, ..., Hn in modo che
+		p, q siano nello stesso Hi se e solo se
+		per ogni carattere a vale che t(p, a), t(q, a)
+		sono nello stesso elemento di P[i]
+		
+		aggiungi H0, H1, ..., Hn a P[i+1]
+	}
+	i++
+}
+n = i
+\end{minted}
+
+Chiameremo $\Pi_i$ gli insiemi \code{P[i]} definiti nell'algoritmo.
+
+A questo punto l'automa minimo si definisce $\mathcal{A}_{min} = (\Pi_n, \Lambda, t_{min}, G_0, F_{min})$. Ricordo che $\Pi_n$ è una partizione di $Q$, quindi i suoi elementi sono insiemi di stati di $\mathcal{A}$. $G_0 \in \Pi_n$ è l'elemento di $\Pi_n$ che contiene $q_0$. $F_{min}$ contiene tutti gli elementi di $\Pi_n$ che contengono almeno uno stato di finale di $\mathcal{A}$. La funzione di transizione $t_{min}(G, a) = t(q, a)$ con $q \in G$. Questa definizione di $t_{min}$ è buona: presi due $p, q \in G$ deve valere per come viene eseguito l'algoritmo che $t(p, a)$ e $t(q, a)$ sono nello stesso $G' \in \Pi_n$.
+
+Definisco inoltre una successione di relazioni di equivalenza $\mathcal{R}_i$ tali che
+\[
+x \mathcal{R}_i y \iff \exists G \in \Pi_i \,.\quad t^*(q_0, x), t^*(q_0, y) \in G
+\]
+
+\begin{remark}
+	Per ogni $i$ vale che $L$ è l'unione di alcune classi di equivalenza di $\mathcal{R}_i$, precisamente tutte e sole quelle definite da un $G \in \Pi_i$ che contengono uno stato finale di $\mathcal{A}$.
+\end{remark}
+
+Queste relazioni sono le raffinazioni successive della relazione di equivalenza accennate in precedenza, e in generale non sono invarianti destre.
+
+Diamo ora un po' di struttura a $\mathcal{R}_n$, dimostrando il seguente lemma:
+
+\begin{lemma}
+	Siano $G$, $G' \in \Pi_n$ due stati di $\mathcal{A}_{min}$. Allora esiste una stringa $w$ tale che esattamente uno tra $t_{min}(G, w)$ e $t_{min}(G', w)$ è finale.
+\end{lemma}
+\begin{proof}
+%	Siano $x, y$ due stringhe. Allora
+%	\begin{align*}
+%		x \mathcal{R}_n y &\iff \exists G \in \Pi_n \,.\quad t^*(q_0, x), t^*(q_0, y) \in G \\
+%		&\iff \forall a \in \Lambda \,.\quad \exists G' \in \Pi_n \,.\quad t^*(q_0, xa), t^*(q_0, ya) \in G'
+%	\end{align*}
+%	dove la seconda equivalenza è data dalla definizione di $\Pi_n$: se infatti non fosse vera nel \code{while} dell'algoritmo avrei potuto ulteriormente spezzare $G \in \Pi_{n-1}$ e quindi non avrei avuto $\Pi_{n-1} = \Pi_{n}$.
+%	Per induzione sulla lunghezza della stringa si ottiene che
+%	\begin{align*}
+%	&\forall a \in \Lambda \,.\; \exists G' \in \Pi_n \,.\; t^*(q_0, xa), t^*(q_0, ya) \in G') \\
+%	&\implies \forall w \in \Lambda^* \,.\; \exists G' \in \Pi_n \,.\; t^*(q_0, xw), t^*(q_0, yw) \in G'
+%	\end{align*}
+%	e prendendo $w \in \Lambda$ si ottiene che anche questo è un se e solo se.
+%	
+%	Dalla definizione di $\sim$ si ha che
+%	\begin{align*}
+%	x \sim y &\iff \forall w \,.\; (xw \in L \iff yw \in L) \\
+%	&\iff \forall w \,.\; (t^*(q_0, xw) \in F \iff t^*(q_0, yw) \in F)
+%	\end{align*}
+	
+	Se esattamente uno tra $G$ e $G'$ è finale la tesi è vera con la stringa $w = \epsilon$. Altrimenti $G \cup G'$ è un sottoinsieme o di $F$ o di $Q \setminus F$. Suppongo che $G \cup G' \subseteq F$, l'altro caso è simile.
+	
+	Suppongo per assurdo che, per ogni carattere $a \in \Lambda$, i due stati $t_{min}(G, a)$, $t_{min}(G', a)$ di $\mathcal{A}_{min}$ siano uguali, ovvero che comunque presi due stati $q \in G$ e $q' \in G'$ di $\mathcal{A}$ si abbia che $t^*(q, a), t^*(q', a)$ sono nello stesso elemento di $\Pi_n$. Ma dato che ogni $\Pi_i$ è una raffinazione di $\Pi_{i-1}$, i due stati $t^*(q, a), t^*(q', a)$ sono nello stesso elemento di $\Pi_i$ per ogni $i$, e perciò non sarebbero mai stati separati dall'algoritmo. L'unica possibilità è quindi che fossero inizialmente separati in $\Pi_0$, ma questo è assurdo perché $q, q' \in G \cup G' \subseteq F$ e quindi erano nello stesso elemento della partizione $\Pi_0$.
+	Quindi $\exists a \in \Lambda \,.\; t_{min}(G, a) \neq t_{min}(G', a)$.
+	
+	\todo{qui sto un po' fuffando perché potrei avere dei cicli}
+	Iterando questo procedimento a partire da questi due stati si ottiene che esiste una stringa $w'$ tale che esattamente uno tra $t_{min}(G, aw'), t_{min}(G', aw')$ è finale, quindi la stringa $w = aw'$ è quella cercata.
+\end{proof}
+
+\begin{theorem}
+	La relazione $\mathcal{R}_n$ è la $\sim$ del lemma \ref{th:tilde-inv-destra}.
+\end{theorem}
+\begin{proof}
+	Siano $x, y$ due stringhe. Allora dalla definizione di $\sim$ si ha che
+	\begin{align*}
+	x \sim y &\iff \forall w \,.\; (xw \in L \iff yw \in L) \\
+	&\iff \forall w \,.\; (t^*(q_0, xw) \in F \iff t^*(q_0, yw) \in F)
+	\end{align*}
+	
+	Se per assurdo $t^*(q_0, x)$ e $t^*(q_0, y)$ fossero in due elementi $G$, $G'$ distinti di $\Pi_i$ per il lemma precedente avrei che esiste $w$ tale che esattamente uno dei dei due $t^*(q_0, xw)$ e $t^*(q_0, yw)$ è finale, ma devono esserlo entrambi perché $x \sim y$. Quindi
+	\[
+	\exists G' \in \Pi_n \,.\; t^*(q_0, x), t^*(q_0, y) \in G'
+	\]
+	
+	Quindi
+	\begin{align*}
+		x \sim y &\iff \forall w \,.\; (t^*(q_0, xw) \in F \iff t^*(q_0, yw) \in F)\\
+		&\implies \exists G' \in \Pi_n \,.\; t^*(q_0, x), t^*(q_0, y) \in G' \\
+		&\implies \forall w \in \Lambda^* \,.\; \exists G \in \Pi_n \,.\; t^*(q_0, xw), t^*(q_0, yw) \in G \\
+		&\implies x \mathcal{R}_n y
+	\end{align*}
+	
+	Dalla dimostrazione del lemma \ref{th:tilde-inv-destra} sappiamo che $x \mathcal{R}_n y \implies x \sim y$, perciò le due relazioni sono la stessa.
+\end{proof}
+
+\begin{remark}
+	In realtà tutte le implicazioni del teorema precedente sono dei se e solo se, ma non è necessario dimostrarlo dato che il lemma \ref{th:tilde-inv-destra} ci garantisce l'implicazione nell'altro verso.
+\end{remark}
+
+Si può notare che la costruzione di $\mathcal{A}_{min}$ è quella del teorema \ref{th:myhill-nerode}, eseguita sulla relazione $\mathcal{R}_n$. Dato che abbiamo dimostrato che questa è proprio la relazione $\sim$ del lemma \ref{th:tilde-inv-destra}, abbiamo il seguente
+
+\begin{corollary}
+	L'algoritmo presentato calcola effettivamente l'automa minimo.
+\end{corollary}
+
+Una conseguenza di questo algoritmo è che, dati due DFSA, posso entrambi ridurli all'automa minimo e verificare se questi due sono uguali. Dall'unicità dell'automa minimo segue che 
+\begin{corollary}
+	È decidibile se due DFSA riconoscono lo stesso linguaggio.
+\end{corollary}
+
+\subsubsection{Automi non deterministici}
+Vediamo ora una variazione dei DFSA che, sorprendentemente, ha la stessa potenza espressiva di questi. Il vantaggio è che possono risultare molto più compatti da descrivere ed è più facile utilizzarli per riconoscere una grammatica.
+\begin{definition}[Automi a stati finiti non deterministici]
+	Un automa a stati finiti non deterministico (ASFND o NFSA, dall'inglese) è un automa a stati finiti in cui però viene rimosso il vincolo che $t$ sia una funzione, ma diventa semplicemente una relazione.
+\end{definition}
+
+Per simulare un NFSA si può immagine di seguire contemporaneamente tutti i percorsi possibili con la stringa passata. Se almeno uno di questi percorsi termina in uno stato finale allora l'automa accetta la stringa, altrimenti la rifiuta.
+
+Questo in un certo senso è quello che succede con le MdT non deterministiche: ogni volta che l'automa si trova davanti ad una scelta la risolve nondeterministicamente nel modo ottimo, ovvero per arrivare all'accettazione.
+
+Un altro modo di vedere la cosa è che l'automa non deterministico, invece di trovarsi in uno \textit{stato} si trova in un \textit{insieme di stati}, ed ogni transizione genera tutti i possibili stati raggiungibili dagli stati in cui si trova seguendo gli archi con il carattere letto. Quest'ultima visione sarà quella che permetterà di trasformare un NFSA in DFSA.
+
+\begin{definition}[Funzione di transizione generalizzata]
+	Dato un NFSA $\{ Q, A, t, q_0, F \}$, la funzione di transizione $t_1 : \mathcal{P}(Q) \times A \rightarrow \mathcal{P}(Q)$ si definisce come
+	\[
+	t_1(U, a) = \bigcup\limits_{u \in U} \{ q \ \vert \ (u, a, q) \in t \}
+	\]
+	
+	Per $i = 0$ si definisce $t_0 : \mathcal{P}(Q) \times A^0 \rightarrow \mathcal{P}(Q)$ come $t_0(U, \epsilon) = U$.
+	
+	Per $i \ge 1$ la funzione di transizione $i$-esima $t_i : \mathcal{P}(Q) \times A^i \rightarrow \mathcal{P}(Q)$ si definisce come $t_i(U, s) = U'$ se $s = as'$, $t_{i-1}(U, s') = U''$ e $t_1(U'', a) = U'$.
+	
+	La funzione di transizione generalizzata $t^*: \mathcal{P}(Q) \times A^* \rightarrow \mathcal{P}(Q)$ si definisce come $t^*(U, s) = t_{\vert s \vert}(U, s)$.
+	
+	Un NFSA accetta una stringa $s$ se $t^*(\{ q_0 \}, s) \cap F \neq \emptyset$.
+\end{definition}
+
+\begin{theorem}\label{th:NFSA-to-DFSA}
+	Gli NFSA sono equivalenti ai DFSA, nel senso che per ogni DFSA esiste un NFSA equivalente e viceversa.
+\end{theorem}
+\begin{proof}
+	Ovviamente un DFSA è anche un NFSA, quindi un DFSA è l'automa non deterministico equivalente a se stesso. Supponiamo quindi di avere un automa non deterministico e costruiamo un automa deterministico che riconosce le stesse stringhe.
+	
+	L'idea è di avere uno stato nell'automa deterministico per ogni insieme di stati del NFSA. Dato l'automa non deterministico $\{ Q, A, t, q_0, F \}$, consideriamo quindi l'automa deterministico $\{ \mathcal{P}(Q), A, t', \{ q_0 \}, F' \}$ dove definiamo $F' = \{ U \subseteq Q \ \vert \ U \cap F \neq \emptyset \}$ e $t' = t_1$. Verifichiamo che questi due automi sono equivalenti.
+	
+	Mostriamo per induzione che $t_n(U, s) = t'_n(U, s)$. Il passo base è ovvio dato che $t' = t_1$. Il passo induttivo è vero perché, detta $s=as'$, vale
+	\[
+	t_{n+1}(U, s) = t_1( t_n(U, s') , a) = t'( t_n(U, s') , a) = t'( t'_n(U, s') , a) = t'_{n+1}(U, s)
+	\]
+	dove la penultima uguaglianza è per ipotesi induttiva.
+	
+	Da questo segue la tesi.
+\end{proof}
+
+Notare che la riduzione di un NFSA ad un DFSA (nota come power set construction) può essere eseguita facilmente da un algoritmo.
+
+Nonostante l'uguale potenza espressiva i NFSA hanno, come nel caso delle MdT, un guadagno esponenziale di ``potenza": infatti in generale la riduzione introdotta aumenta esponenzialmente il numero di stati di un DFSA equivalente ad un NFSA. In generale questa esplosione non si può prevenire:
+\begin{example}
+	Per ogni $n$ si consideri il seguente NFSA:
+
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+		\node[state,initial] (q0) {$q_0$};
+		\node[state] [right=of q0] (q1) {$q_1$};
+		\node[state] [right=of q1] (q2) {$q_2$};
+		\node[right=of q2] (qd) {$\dots$};
+		\node[state,accepting] [right=of qd] (qn) {$q_n$};
+		\path[->]
+		(q0) edge  [loop above] node {a,b} (q0)
+		(q0) edge node{b} (q1)
+		(q1) edge node{a,b} (q2)
+		(q2) edge node{a,b} (qd)
+		(qd) edge node{a,b} (qn);
+	\end{tikzpicture}
+	
+	che riconosce il linguaggio $(ab)^* . b . (ab)^{n-1}$ (indicato con un leggero abuso di notazione delle espressioni regolari, ma che dovrebbe essere chiaro).
+	
+	Un DFSA equivalente ha un numero di stati dell'ordine di $2^n$ perché ogni volta che legge una $b$ (potrebbe fare passare il NFSA da $q_0$ a $q_1$) deve tenere uno stato che corrisponde sia all'avanzamento lungo $q_1$ che al rimanere su $q_0$.
+\end{example}
+
+Introduciamo una versione leggermente più potente di NFSA, che di nuovo è equivalente ai DFSA: un automa a stati finiti non deterministico con $\epsilon$-transizioni (o $\epsilon$-NFSA) è un automa in cui $t \subseteq Q \times A \cup \{ \epsilon \} \times Q$ ammette anche transizioni senza nessun carattere. Per definirne la semantica introduciamo l'$\epsilon$-chiusura, il minimo sottoinsieme $\epsilon$-cl$(U)$ degli stati tale per cui
+\[
+\epsilon\text{-cl}(U) = U \cup \bigcup\limits_{u \in \epsilon\text{-cl}(U)} \{ q \svert (u, \epsilon, q) \in t \}
+\]
+ovvero l'insieme degli stati raggiungibili da $U$ con solo $\epsilon$-transizioni. Ora abbiamo
+\[
+T(U, a) = \bigcup\limits_{u \in U} \{ q \ \vert \ (u, a, q) \in t \}
+\]
+e possiamo definire
+\begin{align*}
+t_0(U, \epsilon) &= \epsilon\text{-cl}(U) \\
+t_{i+1}(U, s'a) &= \epsilon\text{-cl}\left(T(t_i(U, s'), a)\right)
+\end{align*}
+
+Vorremmo ridurre questi ai DFSA che già conosciamo, e per farlo seguiremo una strada abbastanza simile a quella per ridurre i DFSA. Inizialmente ci basiamo sul calcolo dell'$\epsilon$-chiusura di $U \subseteq Q$, che si può fare con il seguente algoritmo:
+\begin{minted}{C}
+WL = U
+E(U) = U
+while (WL != vuoto) {
+	q = pop(WL)
+	for (p . q va in p con una e-transizione) {
+		if (not p appartiene a E(U)) {
+			aggiungi p ad E(U)
+			push(WL, p)
+		}
+	}
+}
+\end{minted}
+
+\begin{remark}
+	Questo algoritmo termina sempre perché $WL \subseteq E(U) \subseteq \epsilon\text{-cl}(U)$, $WL$ perde un elemento ad iterazione e nessun elemento viene inserito in $WL$ due volte.
+	
+	Inoltre calcola correttamente l'$\epsilon$-chiusura di $U$ perché l'algoritmo corrisponde ad una visita del grafo dell'automa ridotto alle $\epsilon$-transizioni partendo dall'insieme $U$.
+\end{remark}
+
+\begin{lemma}\label{th:epsilon-nfsa-reduction}
+	Gli $\epsilon$-NFSA sono equivalenti ai DFSA.
+\end{lemma}
+\begin{proof}
+	La dimostrazione è costruttiva e segue quasi completamente quella del lemma \ref{th:NFSA-to-DFSA}. Ovviamente un DFSA è anche un $\epsilon$-NFSA, mentre per la riduzione nell'altra direzione l'unica differenza è l'aggiunta di un calcolo della $\epsilon$-chiusura nella funzione di transizione dell'automa deterministico.
+	
+	Precisamente, dato l'$\epsilon$-NFSA $\{ Q, A, t, q_0, F \}$ si definisce il DFSA $\{ \mathcal{P}(Q), A, t', \{ q_0 \}, F' \}$ dove definiamo $F' = \{ U \subseteq Q \ \vert \ U \cap F \neq \emptyset \}$ e $t' = \epsilon\text{-cl} \circ t_1$. La correttezza si verifica allo stesso modo ricordando che nel caso dei $\epsilon$-NFSA
+	\[
+	t_{i+1}(U, s'a) = \epsilon\text{-cl}\left(T(t_i(U, s'), a)\right)
+	\]
+\end{proof}
+
+\subsubsection{Equivalenza dei formalismi}
+Passiamo ora a dimostrare l'equivalenza dei tre formalismi che abbiamo introdotto per rappresentare i linguaggi regolari.
+
+\begin{lemma}
+	Dato un DFSA esiste una grammatica regolare che genera lo stesso linguaggio riconosciuto da quell'automa.
+\end{lemma}
+\begin{proof}
+	Dato l'automa $\{ Q, A, t, q_0, F \}$, definisco la grammatica
+	\[
+	\{ Q , A, q_0 , P \}
+	\]
+	dove l'insieme delle produzioni $P$ contiene uno o due elementi per ogni arco del grafo dell'automa costruiti in questo modo (chiamando $S_i = q_i$ per chiarezza): se $t(q_i, a) = q_j$ aggiungo la produzione $S_i \rightarrow a S_j$. Se inoltre $q_j$ è finale aggiungo anche $S_i \rightarrow a$.
+	
+	Vediamo che una stringa riconosciuta dall'automa viene generata dalla grammatica. Sia $s$ una stringa lunga $n$ per cui $t^*(q_0, s) = q_n \in F$, e siano $s_i$ le sottostringhe formate dai primi $i$ caratteri di $s$. Allora per induzione $s_i S_{t^*(q_0, s_i)} \in V_i$. Il passo base per $i=0$ è ovvio perché $\epsilon S_0 \in V_0 = \{ S_0 \}$. Il passo induttivo è vero perché se $s_i S_{t^*(q_0, s_i)} \in V_i$ deve valere $s_{i+1} S_{t^*(q_0, s_{i+1})} \in V_{i+1}$ dato che la produzione $S_{t^*(q_0, s_i)} \rightarrow s[i+1]S_{t^*(q_0, s_{i+1})}$ deve appartenere a $P$, visto che $t(t^*(q_0, s_i), s[i+1]) = t^*(q_0, s_{i+1})$ per definizione di $t^*$. Inoltre, dato che $q_n \in F$ la produzione $S_{t^*(q_0, s_{n-1})} \rightarrow s[n]$ appartiene a $P$, e per quanto dimostrato prima $s_{n-1}S_{t^*(q_0, s_{n-1})} \in V_{n-1}$, da cui $s \in V_n$.
+	
+	Vediamo ora che una stringa generata dalla grammatica viene riconosciuta dall'automa. Sia $s$ una stringa lunga $k$, generata dalla sequenza di produzioni $(S_{n_i} \rightarrow a_{i+1} S_{n_{i+1}})_i$, con la prima produzione che ha $n_0 = 0$ e l'ultima uguale a $S_{n_{k-1}} \rightarrow a_k$. Dato che tutte queste produzioni appartengono a $P$ gli archi corrispondenti devono appartenere alla funzione di transizione: $t(q_{n_i}, a_{i+1}) = q_{n_{i+1}}$ e $t(q_{n_{k-1}}, a_k) \in F$ dato che l'ultima produzione non ha la categoria sintattica a destra. Quindi vale che $t^*(q_{n_0}, s) = t(q_{n_{k-1}}, a_k)$, perciò l'automa riconosce la stringa.
+\end{proof}
+
+\begin{lemma}
+	Data un grammatica regolare esiste un NFSA che riconosce lo stesso linguaggio generato dalla grammatica.
+\end{lemma}
+\begin{proof}
+	Data la grammatica $\{ N, A, S_0, P \}$, definisco l'automa non deterministico
+	\[
+	\{ N \cup \{ q_T \}, A, t, S_0, \{ q_T \} \}
+	\]
+	Di nuovo uso $q_i$ per indicare la categoria sintattica $S_i$ quando la considero come stato. Dico che la tripla $t(q_i, a) = q_j$ appartiene alla relazione di transizione se la produzione $S_i \rightarrow a S_j$ appartiene a $P$. Se invece la produzione $S_i \rightarrow a \in P$ allora aggiungo la tripla $t(q_i, a) = q_T$ alla relazione.
+	
+	Una stringa viene generata dalla grammatica se e solo se viene riconosciuta dall'automa. La dimostrazione è uguale a quella precedente, sostituendo le uguaglianze con delle appartenenze o delle inclusioni a seconda dei casi.
+\end{proof}
+
+Dall'equivalenza tra DFSA e NFSA si ottiene il
+\begin{corollary}
+	I linguaggi regolari sono tutti e soli quelli riconosciuti dagli automi a stati finiti.
+\end{corollary}
+
+\begin{lemma}
+	Data un'espressione regolare $E$ questa genera un linguaggio regolare.
+\end{lemma}
+\begin{proof}
+	Si può costruire un automa non deterministico come segue, partendo dalla costruzione dell'espressione regolare. Notare come tutti gli automi che definiamo abbiano esattamente uno stato iniziale e uno finale (eventualmente coincidenti).
+	
+	Il terminale $\emptyset$ corrisponde all'automa
+	
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+		\node[state,initial] (q_0) {$q_0$};
+	\end{tikzpicture}
+	
+	Il terminale $\epsilon$ corrisponde all'automa
+	
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+		\node[state,initial,accepting] (q_0) {$q_0$};
+	\end{tikzpicture}
+	
+	Il terminale $a_i$ corrisponde all'automa
+	
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+		\node[state,initial] (q_0) {$q_0$};
+		\node[state,accepting] [right=of q_0] (q_1) {$q_1$};
+		\path[->] 
+		(q_0) edge node {a} (q_1);
+	\end{tikzpicture}
+	
+	La produzione $E_1 + E_2$, detti $M_1$ ed $M_2$ gli automi di $E_1$ ed $E_2$, corrisponde all'automa
+	
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+		\node[state,initial] (q_0) {$q_0$};
+		\node[state] [above right=of q_0] (m_1) {$M_1$};
+		\node[state] [below right=of q_0] (m_2) {$M_2$};
+		\node[state,accepting] [below right=of m_1] (q_1) {$q_1$};
+		\path[->] 
+		(q_0) edge node{$\epsilon$} (m_1)
+		edge node{$\epsilon$} (m_2)
+		(m_1) edge node{$\epsilon$} (q_1)
+		(m_2) edge node{$\epsilon$} (q_1);
+	\end{tikzpicture}
+	
+	dove gli archi uscenti da $M_1$ ed $M_2$ partono dallo stato finale dei due automi, che non sono più finali nell'automa derivato.
+	
+	La produzione $E_1 . E_2$, detti $M_1$ ed $M_2$ gli automi di $E_1$ ed $E_2$, corrisponde all'automa
+	
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+		\node[state,initial] (q_0) {$q_0$};
+		\node[state] [right=of q_0] (m_1) {$M_1$};
+		\node[state] [right=of m_1] (m_2) {$M_2$};
+		\node[state,accepting] [right=of m_2] (q_1) {$q_1$};
+		\path[->] 
+		(q_0) edge node{$\epsilon$} (m_1)
+		(m_1) edge node{$\epsilon$} (m_2)
+		(m_2) edge node{$\epsilon$} (q_1);
+	\end{tikzpicture}
+	
+	La produzione $(E_1)^*$, detto $M_1$ l'automa di $E_1$, corrisponde all'automa
+	
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+		\node[state,initial,accepting] (q_0) {$q_0$};
+		\node[state] [right=of q_0] (m_1) {$M_1$};
+		\path[->] 
+		(q_0) edge[bend left,above] node{$\epsilon$} (m_1)
+		(m_1) edge[bend left,below] node{$\epsilon$} (q_0);
+	\end{tikzpicture}
+	
+	Questo automa riconosce tutte e sole le stringhe generate dall'espressione regolare per induzione strutturale.
+\end{proof}
+
+\begin{lemma}
+	Dato un DFSA esiste un'espressione regolare che genera lo stesso linguaggio accettato dall'automa.
+\end{lemma}
+\textcolor{red}{DA FARE}
+\begin{proof}[Idea]
+	Si definiscono dei DFSA più generali in cui ad ogni transizione è associata un'espressione regolare. Il DFSA iniziale è un DFSA di questo tipo (con l'espressione regolare corrispondente all'unico simbolo della transizione).
+	Si procede poi eliminando stati, aggiungendo al loro posto transizioni con la concatenazione delle regex sugli archi entranti e uscenti da quello stato. La gestione degli stati con frecce verso se stessi si risolve con la stella di Kleene.
+\end{proof}
+
+Questi due lemmi permettono di dimostrare il
+\begin{corollary}
+	I linguaggi generati dai DFSA sono tutti e soli quelli generati dalle espressioni regolari.
+\end{corollary}
+
+Mettendo insieme i due corollari di questa sezione si ottiene il
+\begin{theorem}
+	Un linguaggio è regolare se e solo se è generato da una grammatica regolare se e solo se è riconosciuto da un automa regolare se e solo se è generato da un'espressione regolare.
+\end{theorem}
+
+\subsubsection{Complementi sui linguaggi regolari}
+Vorremo ora occuparci del seguente problema: dato un linguaggio, capire se è regolare o meno. Per dimostrare che è regolare basta esprimerlo con uno dei tre metodi elencati fin'ora (grammatica regolare, FSA, espressione regolare). Vediamo ora un modo per dimostrare che un linguaggio non è regolare.
+
+\begin{example}
+	Il linguaggio $L=\{ a^n b^n \ \vert \ n > 0 \}$ non è regolare.
+\end{example}
+Intuitivamente il motivo è che un linguaggio regolare può ``aggiungere" caratteri solo da un lato della stringa (per esempio destra) e ha una memoria finita, quindi dopo aver aggiunto le $n$ ``a" all'inizio non può, per $n$ arbitrariamente grande, ricordarsi quante ``a" ci sono per aggiungere lo stesso numero di ``b". Ovviamente questa non è una dimostrazione, vediamo quindi uno strumento per formalizzare questo ragionamento:
+
+\begin{lemma}[Pumping lemma]
+	Sia $L$ un linguaggio regolare. Allora
+	\[
+	\exists n . \forall w \in L . \abs{w} \ge n \implies \exists x, y, z . w = xyz \land \vert xy \vert \le n \land \vert y \vert > 0 \land \forall i \ge 0 . xy^iz \in L
+	\]
+\end{lemma}
+\begin{proof}	
+	Dato che $L$ è regolare, sia $\mathcal{A}$ un DFSA che lo riconosce, e sia $n$ il numero di stati di $\mathcal{A}$. Considero ora una stringa $w \in L$ con $\abs{w} \ge n$, e siano $q_0, q_1, ..., g_{\abs{w}}$ la successione degli stati in cui si trova l'automa mentre riconosce $w$, ovvero, indicando con $w_i$ il prefisso di $w$ lungo $i$, $q_i = t^*(q_0, w_i)$. Dato che $\vert w \vert \ge n$ questo percorso attraversa almeno $n + 1$ stati, che però sono $n$, quindi devono esistere $j \neq k$ tali che $q_j = q_k$; siano $j, k$ la coppia con $k$ minimo per cui succede. Siano allora $x = w_j$, $z$ la stringa formata dagli ultimi $\vert w \vert - k$ caratteri di $w$ e $y$ quella formata dai $k - j$ caratteri in mezzo.
+	
+	Dimostro ora che la partizione $x, y, z$ di $w$ è quella garantita dal teorema. Se per assurdo fosse $\vert xy \vert > n$ avrei che anche all'interno della stringa $xy$ devono trovarsi due indici che corrispondono allo stesso stato, e questa coppia avrebbe il secondo valore $ < k$, assurdo per la minimalità di $k$. Dato che $j \neq k$ si ha $\vert y \vert > 0$. Verifichiamo ora che $xy^iz$ viene accettato dall'automa per ogni $i$.
+	
+	Dato che $x, y, z$ sono sottostringhe di $w$ di quelle lunghezze vale $t^*(q_0, x) = q_j$, $t^*(q_j, y) = q_k$ e $t^*(q_k, z) = q_F$ con $q_F \in F$ uno stato finale. Ma $q_j = q_k$, quindi
+	\[
+	t^*(q_0, xy^iz) = t^*(q_j, y^iz) = t^*(q_j, y^{i-1}z) = ... t^*(q_j, yz) = t^*(q_j, z) = q_F \in F
+	\]
+	perciò la stringa appartiene al linguaggio.
+\end{proof}
+La dimostrazione del pumping lemma essenzialmente si basa sul fatto che se la stringa è troppo lunga mentre l'automa la riconosce deve esserci un ciclo, quindi posso percorrere quel ciclo quante volte voglio (anche 0):
+
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+	\node[state,initial] (q_0) {$q_0$};
+	\node[state] [right=of q_0] (q_1) {$q_j$};
+	\node[state,accepting] [right=of q_1] (q_2) {$q_F$};
+	\path[->] 
+	(q_0) edge node{$x$} (q_1)
+	(q_1) edge node{$z$} (q_2)
+	edge[loop below,below] node{$y$} (q_1);	
+\end{tikzpicture}
+
+In realtà il pumping lemma si usa per dimostrare che un linguaggio non è regolare nella sua forma contronominale:
+
+se $\forall n . \exists w \in L . \vert w \vert > n \land \forall x, y, z . w = xyz \land \vert xy \vert \le n \land \vert y \vert > 0 \implies \exists i \ge 0 . xy^iz \notin L$ allora $L$ non è regolare.
+
+
+\begin{example}
+	Il linguaggio $L=\{ a^n b^n \ \vert \ n > 0 \}$ non è regolare.
+	
+	Fissato $n$ considero la stringa $w = a^nb^n \in L$, con $\vert w \vert = 2n > n$. Allora ogni scomposizione $w = xyz$ con $\vert xy \vert \le n$ deve avere $xy = a^k$ e $y = a^j$ con $0 < j \le k \le n$. Allora per qualsiasi $i \neq 1$ non vale $xy^iz = a^{n+(i-1)j}b^n \in L$, quindi $L$ non è regolare.
+\end{example}
+
+Enunciamo ora un po' di proprietà di chiusura dei linguaggi regolari:
+\begin{prop}
+	L'unione e la concatenazione di due linguaggi regolari sono linguaggi regolari.
+\end{prop}
+\begin{proof}
+	Scrivendo i due linguaggi come espressioni regolari è ovvio che l'unione e la concatenazione siano ancora espressioni regolari.
+\end{proof}
+
+\begin{prop}
+	Il complementare di un linguaggio regolare è regolare.
+\end{prop}
+\begin{proof}
+	Dato il DFSA $\mathcal{A}$ che riconosce il linguaggio, il suo complementare viene riconosciuto dall'automa che ha gli stessi stati e la stessa funzione di transizione, ma come insieme degli stati finali il complementare.
+	
+	Infatti una stringa $s$ viene riconosciuta da $M$ se e solo se $t^*(q_0, s) \in F$, quindi una stringa $s'$ non viene riconosciuta se e solo se $t^*(q_0, s) \notin F$, ovvero $t^*(q_0, s) \in F^C$, quindi se viene riconosciuta da $M$.
+\end{proof}
+
+\begin{corollary}
+	L'intersezione di linguaggi regolari è regolare.
+\end{corollary}
+
+\begin{prop}
+	La stella di Kleene di un linguaggio regolare è regolare, ovvero se $L$ è regolare anche $L^*$ lo è.
+\end{prop}
+\begin{proof}
+	Scrivendo il linguaggio come espressione regolareper definizione la stella di Kleene di quell'espressione genera $L^*$, che quindi è regolare.
+\end{proof}
+
+Concludiamo con qualche osservazione su come creare uno scanner sfruttando la teoria dei linguaggi regolari introdotta. Lo scanner deve \textit{tokenizzare} il codice sorgente, e scegliamo come token gli elementi di un linguaggio regolare. Descriviamo poi questo linguaggio come grammatica regolare o, più comunemente, come espressione regolare. Fatto questo il nostro compito è finito: diamo la descrizione dell'espressione regolare ad un tool automatico (e ne esistono numerosi) che la trasforma in $\epsilon$-NFSA, poi lo riduce ad un DFSA e lo minimizza applicando gli algoritmi introdotti.
+
+Lo scanner opera seguendo il DFSA mentre legge la stringa finché non raggiunge un carattere di separazione (per esempio uno spazio o un line feed). Se a questo punto si trova in uno stato finale genera un token, altrimenti genera un errore di sintassi. In generale si può migliorare la gestione degli errori, per esempio introducendo del backtracking per dare un messaggio più significativo all'utente, ma il riconoscimento di un programma corretto si può anche fermare qui.
+
+\newpage
+\subsection{Linguaggi liberi}
+\begin{definition}[Grammatica libera]
+	Una grammatica si dice libera da contesto, o semplicemente libera, se ha solo produzioni del tipo  $A \rightarrow \alpha$ con $\alpha \in (N \cup \Lambda)^*, A \in N$.
+	
+	Un linguaggio generato da una grammatica libera si dice libero.
+\end{definition}
+Le grammatiche libere sono più potenti delle grammatiche regolari perché, aggiungendo caratteri da entrambi i lati di una stringa, possono aggiungere due caratteri diversi nella stessa quantità.
+
+\begin{example}
+	Il linguaggio $L=\{ a^n b^n \ \vert \ n > 0 \}$ non è regolare, ma è libero.
+	
+	Infatti viene generato dalla grammatica
+	\begin{align*}
+		S \rightarrow ab \ \vert \ aSb
+	\end{align*}
+\end{example}
+
+\begin{remark}
+	Ovviamente un linguaggio regolare è anche libero, dato che le grammatiche regolari sono libere.
+\end{remark}
+
+\subsubsection{Forme normali}
+Le grammatiche libere sono molto più varie di quelle regolari, ed è perciò difficile dimostrarvi sopra teoremi. Uno strumento utile in questo senso sono le forme normali, ovvero forme più vincolate di grammatiche però equivalenti. In questa sezione introdurremo due forme normali, mostrando degli algoritmi per ridurre una qualsiasi grammatica libera in una di queste forme normali.
+
+È importante notare però che queste forme normali non sono uniche, e perciò non permettono di verificare se due grammatiche sono equivalenti (un problema che in effetti non è decidibile).
+
+\begin{definition}[Forma normale di Chomsky]
+	Una grammatica libera in cui tutte le produzioni siano della forma
+	\begin{align*}
+	A &\rightarrow BC  &A, B, C \in N, \quad B, C \neq S \\
+	A &\rightarrow a   &A \in N, a \in \Lambda \\
+	S &\rightarrow \epsilon   &S \text{ il simbolo iniziale}
+	\end{align*}
+	si dice in forma normale di Chomsky.
+\end{definition}
+
+\begin{theorem}
+	Data un grammatica libera $G$ esiste una grammatica equivalente in forma normale di Chomsky.
+\end{theorem}
+\begin{proof}
+	La dimostrazione di questo teorema è costruttiva: a partire dalle produzioni di $G$ si eseguono delle trasformazioni che sostituiscono alcune produzioni con altre equivalenti, fino ad ottenere una grammatica in forma normale di Chomsky.
+	
+	\begin{itemize}
+		\item \textit{Eliminazione del simbolo iniziale dal lato destro delle produzioni}: basta aggiungere la produzione $S_0 \rightarrow S$ con $S_0$ un nuovo simbolo, che sarà iniziale per la grammatica trasformata.
+		\item \textit{Eliminazione delle produzioni con simboli terminali non singoli}: data una produzione $A \rightarrow X_1 ... a ... x_n$ con $a \in T$ basta introdurre un nuovo simbolo $N_a$ per quel terminale e aggiungere la produzione $N_a \rightarrow a$, poi sostituire $a$ con $N_a$ a destra nelle produzioni in cui $a$ non compare da solo.
+		\item \textit{Eliminazione delle produzioni con più di 2 non terminali}: data una produzione $A \rightarrow X_1 X_2 ... X_n$ basta toglierla e aggiungere le nuove categorie sintattiche $A_1, ..., A_{n-2}$ e le nuove regole
+		\begin{align*}
+		&A \rightarrow X_1 A_1 \\
+		&A_1 \rightarrow X_2 A_2 \\
+		&... \\
+		&A_{n-2} \rightarrow X_{n-1} X_n
+		\end{align*}
+		\item \textit{Eliminazione delle $\epsilon$-produzioni}: data una $\epsilon$-produzione $A \rightarrow \epsilon$ in cui $A \neq S_0$ il simbolo iniziale, vogliamo eliminare questa produzione. Definiamo un simbolo $A$ \textit{annullabile} una regola $A \rightarrow \epsilon$ o se esiste una regola $A \rightarrow X_1 X_2 ... X_n$ in cui tutti gli $X_i$ sono annullabili. Sostituiamo poi ogni produzione con almeno un simbolo annullabile a destra con tutte le sue versioni ottenute eliminando un sottoinsieme dei simboli annullabili a destra (eliminare tutti i simboli a destra vuol dire lasciare $\epsilon$), poi eliminiamo tutte le $\epsilon$-produzioni (anche quelle eventualmente aggiunte dal procedimento precedente). Questo non cambia le stringhe prodotte dalla grammatica perché tutte le volte che si sarebbe scelto di porre una categoria sintattica uguale a $\epsilon$ si può invece scegliere nella produzione che poi avrebbe utilizzato quel simbolo di non aggiungerlo.
+		\item \textit{Eliminazione delle produzioni unitarie}: data una produzione $A \rightarrow B$ si può eliminare sostituendola, per ogni regola della forma $B \rightarrow \alpha$, con la regola $A \rightarrow \alpha$.
+	\end{itemize}
+\end{proof}
+
+
+\begin{definition}[Forma normale di Greibach]
+	Una grammatica libera in cui tutte le produzioni siano della forma
+	\begin{align*}
+	A &\rightarrow aA_1A_2...A_n \\
+	S &\rightarrow \epsilon
+	\end{align*}
+	dove $A$ è una categoria sintattica, $A_1, ..., A_n$ è una sequenza di categorie sintattiche (eventualmente vuota) che non contiene il simbolo iniziale $S$, $S$ è il simbolo iniziale e $a$ è un terminale.
+	si dice in forma normale di Greibach.
+\end{definition}
+
+\begin{theorem}
+	Data un grammatica libera $G$ esiste una grammatica equivalente in forma normale di Greibach.
+\end{theorem}
+\begin{proof}
+	Per prima cosa possiamo supporre senza perdita di generalità che $G$ sia in forma normale di Chmosky.
+	
+	La dimostrazione di questo teorema è costruttiva: a partire dalle produzioni di $G$ si eseguono delle trasformazioni che sostituiscono alcune produzioni con altre equivalenti, fino ad ottenere una grammatica in forma normale di Greibach.
+	
+	\begin{itemize}
+		\item \textit{Eliminazione della ricorsione sinistra}: date due produzioni del tipo $A \rightarrow A\alpha \vert \ \beta$ con $A$ non terminale $\alpha, \beta \in V^*$ e $\beta$ che non inizia per $A$ si dice che queste produzioni sono in ricorsione sinistra. Per eliminarla consideriamo tutte le produzioni con $A$ a sinistra
+		\[
+		A \rightarrow A\alpha_1 \ \vert \ A \alpha_2 \ \vert \ ... \ \vert \ A \alpha_m \ \vert \ \beta_1 \ \vert \ \beta_2 \ \vert \ ... \ \vert \ \beta_n
+		\]
+		con i $\beta_i$ che non iniziano per $A$. Sostituiamo poi tutte queste produzioni con
+		\[
+		A \rightarrow \beta_1 A' \ \vert \ ... \ \vert \ \beta_n A'
+		\]
+		e
+		\[
+		A' \rightarrow \alpha_1 A' \ \vert \ ... \ \vert \ \alpha_m A' \ \vert \ \epsilon
+		\]
+		che produce le stesse stringhe. Dato che l'operazione precedente può aver introdotto delle $\epsilon$-produzioni, le eliminiamo (come spiegato nella dimostrazione precedente).
+		
+		\item \textit{Rimozione di un simbolo iniziale}: data una produzione $A \rightarrow B\beta$ non in forma normale di Greibach la sostituiamo con, per ogni regola della forma $B \rightarrow \alpha$, con la regola $A \rightarrow \alpha\beta$. Dato che non ci sono produzioni ricorsive a sinistra con $B$ a sinistra, questa operazione ha eliminato una produzione con $B$ come simbolo iniziale senza introdurne nessun'altra che inizi con $B$ o un altro simbolo già eliminato dai simboli che si trovano all'inizio delle produzioni. Ripetendo questo procedimento per tutte le altre produzioni non in forma normale di Greibach che iniziano con $B$ a destra si possono eliminare tutte le produzioni di questo tipo.
+		
+		\item \textit{Rimozione di un simbolo iniziale senza reintroduzione}: applicando il passo precedente, potremmo aver introdotto delle produzioni in ricorsione sinistra. Eliminiamo queste ricorsioni, un simbolo alla volta, occupandoci però di non reintrodurre produzioni che iniziano con un simbolo già eliminato come simbolo iniziale. Supponiamo di rimuovere la ricorsione sinistra di $A$. Questo potrebbe a sua volta introdurre delle produzioni con simbolo iniziale $B$ già eliminato da un passo precedente. Queste produzioni possono essere di due tipi: se vengono introdotte dalla sostituzione
+		\[
+		A' \rightarrow \alpha_i A'
+		\]
+		vi sostituisco $B$ e così tolgo tutte le produzioni che iniziano con $B$ senza introdurre altra ricorsione sinistra, dato che il simbolo $A'$ compare solo nelle produzioni di $A$ e $A'$ in quanto appena introdotto dall'eliminazione della ricorsione sinistra. Inoltre queste sostituzioni non introducono produzioni che iniziano con un simbolo iniziale già eliminato, in quanto tale simbolo dovrebbe già apparire nelle produzioni con $B$ a sinistra. L'altra possibilità è che siano state introdotte dall'eliminazione delle $\epsilon$-produzioni, ma questo non può accadere perché l'unica $\epsilon$-produzione rimossa è quella $A' \rightarrow \epsilon$, e $A'$ non è mai il primo simbolo di una produzione dato che appare solo in
+		\[
+		A \rightarrow \beta_1 A' \ \vert \ ... \ \vert \ \beta_n A'
+		\]
+		e
+		\[
+		A' \rightarrow \alpha_1 A' \ \vert \ ... \ \vert \ \alpha_m A' \ \vert \ \epsilon
+		\]
+		dopo $\alpha_i$ o $\beta_i$, che non sono le stringhe vuote in quanto prima dell'eliminazione della ricorsione sinistra non c'erano $\epsilon$-produzioni.
+		
+		In questo modo abbiamo eliminato ogni produzione che inizia con un certo simbolo senza introdurre ricorsione sinistra, $\epsilon$-produzioni o produzioni che iniziano con un simbolo già eliminato in precedenza.
+		
+		\item \textit{Conversione in forma normale di Greibach}: ripetiamo il procedimento precedente per tutti i simboli che si trovano all'inizio di una produzione.
+	\end{itemize}
+\end{proof}
+
+\subsubsection{Chiusure, pumping lemma e appartenenze}
+
+Vediamo subito alcune proprietà di chiusura della classe dei linguaggi liberi:
+\begin{prop}
+	L'unione di due linguaggi liberi è un linguaggio libero.
+\end{prop}
+\begin{proof}
+	Prese le due grammatiche dei due linguaggi, la nuova grammatica che ha come simbolo iniziale $S$ e le produzioni che la mandano nei due simboli iniziali delle altre due grammatiche produce l'unione dei linguaggi.
+\end{proof}
+
+\begin{prop}
+	La concatenazione di due linguaggi liberi è libera.
+\end{prop}
+\begin{proof}
+	Prese le due grammatiche dei due linguaggi, la nuova grammatica che ha come simbolo iniziale $S$ e la produzione che la manda nella concatenazione dei due simboli iniziali delle altre due grammatiche produce la concatenazione dei linguaggi.
+\end{proof}
+
+\begin{remark}
+	L'intersezione di due linguaggi liberi non è per forza libera.
+\end{remark}
+
+\begin{example}
+	I due linguaggi $L_1 = \{ a^nb^nc^k \ \vert \ n, k \ge 0 \}$ e $L_2 = \{ a^kb^nc^n \ \vert \ n, k \ge 0 \}$ sono liberi. La loro intersezione $\{ a^n b^n c^n \}$ non lo è.
+\end{example}
+
+Intuitivamente questo linguaggio non è libero perché ha utilizzato lo stesso numero tre volte, ovvero ha "letto" il numero memorizzato senza cancellarlo. Vedremo che questo vincolo è abbastanza intuitivo una volta introdotti gli automi che riconoscono i linguaggi liberi, ma per ora possiamo accontentarci dell'intuizione che i linguaggi liberi hanno il vincolo che un certo dato può essere usato solo due volte (in generale non è però sufficiente che un linguaggio ``utilizzi ogni numero solo due volte" per renderlo libero, vedremo un esempio a breve). Per formalizzare questo concetto vediamo, come per i linguaggi regolari, un lemma:
+
+\begin{lemma}[Pumping lemma]
+	Sia $L$ un linguaggio libero. Allora
+	\[
+	\exists n . \forall s \in L . \vert s \vert > n \implies \exists v, w, x, y, z . s = vwxyz \land \vert wxy \vert \le n \land wy \neq \lambda \land \forall i \ge 0 . vw^ixy^iz \in L
+	\]
+\end{lemma}
+\begin{proof}
+	Suppongo senza perdita di generalità che $L$ sia in forma normale di Chomsky. Presa una stringa $s \in L$, considero il suo albero di derivazione. Dato che ogni nodo ha al più due figli e che il numero di foglie è pari a $\vert s \vert$ vale $\vert s \vert \le 2^{h(s)}$, dove $h(s)$ è l'altezza dell'albero di derivazione.
+	
+	Considero ora $n = 2^{\abs{N}}$, e sia $s$ più lunga di $n$. Deve valere $h(s) > \abs{N}$. Per il principio dei cassetti quindi c'è un percorso dalla radice ad una foglia che contiene due volte la stessa categoria sintattica. Considero il percorso che minimizza la distanza tra due occorrenze di una stessa categoria sintattica, e sia $B$ questa categoria. Definisco quindi $wxy$ come la sottostringa ottenuta dal sottoalbero radicato nella prima occorrenza di $B$ in questo percorso e $v$ e $z$ di conseguenza. Più precisamente, sia $x$ la sottostringa generata dal sottoalbero radicato nella seconda occorenza di $B$ e $w$ e $y$ di conseguenza.
+	
+	\Tree [.S [.v ] [.B [.w ] [.B [.x ] ] [.y ] ] [.z ] ]
+	
+	Verifichiamo che la divisone così scelta rispetta le condizione del teorema. $\vert wxy \vert \le n$ altrimenti il percorso tra le due occorrenze di $B$ sarebbe più lungo di $n$ e quindi conterrebbe una categoria sintattica ripetuta, assurdo per la minimalità di tale percorso. $wy \neq \epsilon$ dato che il sottoalbero radicato nella prima occorrenza di $B$ contiene altre categorie sintattiche, quindi deve avere come figli due categorie sintattiche e non un terminale (uniche possibilità perché la grammatica è in forma normale di Chomsky), perciò almeno uno tra $w$ ed $y$ sono il risultato di una categoria sintattica e sono quindi non vuoti (in forma normale di Chomsky non esistono $\epsilon$-produzioni). Fissato $i$, considero le produzioni. Dato che avevo ottenuto $vwxyz$ con l'albero di derivazione specificato devo poter ottenere da $S$ la stringa $vBz$ e da $B$ sia $wBY$ che $x$.
+	
+	
+	\Tree [.S [.v ] [.B [.w ] [.... [.w ] [.B [.x ] ] [.y ] ] [.y ] ] [.z ] ]
+	
+	Da questo segue che, per ogni $i$, posso sostituire $B$ in $vBz$ con $wBY$ per $i$ volte e poi sostituire la $B$ rimasta con $x$, ottenendo così $vw^ixy^iz$.
+\end{proof}
+
+Come il pumping lemma per linguaggi regolari anche questo si utilizza nella forma contronominale per dimostrare che un linguaggio non è libero:
+
+se $\forall n . \exists s \in L . \vert s \vert > n \land \forall v, w, x, y, z . s = vwxyz \land \vert wxy \vert \le n \land wy \neq \epsilon \implies \exists i \ge 0 . vw^ixy^iz \notin L$ allora $L$ non è libero.
+
+\begin{example}
+	Il linguaggio $\{ a^n b^n c^n \}$ non è libero.
+	
+	Applichiamo il pumping lemma: preso $n$, considero la stringa $a^n b^n c^n$. Una scomposizione con $\vert wxy \vert \le n$ può essere o della forma $a^j b^k$ o $b^k c^j$. Per $i = 2$ la stringa $vw^2xy^2z$ non appartiene al linguaggio dato che in qualsiasi scomposizione modifica il numero o di $a$ o di $c$ ma non entrambi, ma questi devono rimanere uguali.
+	
+	È interessante aggiungere a questo esempio che questo linguaggio è contestuale, ed è generato dalla seguente grammatica:
+	\begin{align*}
+	&S \rightarrow aSBc \svert aBC \\
+	&aB \rightarrow ab \\
+	&bB \rightarrow bb \\
+	&bC \rightarrow bc \\
+	&cC \rightarrow cc \\
+	& \\
+	&CB \rightarrow CX \\
+	&CX \rightarrow YX \\
+	&YX \rightarrow YC \\
+	&YC \rightarrow BC \\
+	\end{align*}
+	L'idea è che vorremmo aggiungere la produzione $CB \rightarrow BC$ ma non possiamo perché non una produzione contestuale, e perciò usiamo le ultime quattro per scambiare $B$ e $C$ passando per dei non terminali ``finti". Notare come però questa sia una produzione ammissibile in una grammatica monotona.
+\end{example}
+
+Un altro esempio interessante è il seguente linguaggio
+\begin{example}
+	Il linguaggio $\lbrace a^k b^h c^k d^h \svert k, h \ge 0 \rbrace$ non è libero.
+	
+	Fissato $n$ per il pumping lemma, scelgo $h, k > n$. Qualsiasi scomposizione del pumping lemma con $\abs{wxy} \le n$ non può comprendere contemporaneamente una $a$ ed una $c$. Se contiene solo una dei due per ogni $i \neq 1$ cambia il numero del carattere che contiene, che quindi non è più uguale al numero dell'altro. Se invece non contiene né $a$ né $c$ deve essere formata interamente da $b$ o da $d$, e di nuovo per $i \neq 1$ cambia il numero di uno dei due caratteri ma non dell'altro.
+\end{example}
+
+In generale però il pumping lemma non garantisce che un linguaggio sia libero, come suggerisce il seguente esempio:
+\begin{example}
+	$L = \lbrace a^i b^j c^h d^k \svert i = 0 \lor j = h = k \rbrace$ rispetta il pumping lemma ma non è libero.
+	
+	Intuitivamente non è libero perché se $i = 0$ devo usare il valore di $j$ tre volte, che abbiamo intuito essere impossibile. Tuttavia rispetta il pumping lemma: fissato $n$ posso scomporre una qualsiasi stringa più lunga di $n$ in modo da ``pompare" solo $a$ se $i \neq 0$ e $b$ altrimenti.
+\end{example}
+
+Un'altra interessante proprietà di chiusura è la seguente
+\begin{prop}
+	Sia $L$ un linguaggio libero ed $L'$ un linguaggio \textit{regolare}. Allora $L \cap L'$ è libero.
+\end{prop}
+\begin{proof}[Idea]
+	L'idea è di eseguire in contemporanea i due automi (a pila e a stati finiti) che definiscono $L$ ed $L'$ ed accettare se e solo se accettano entrambi. Per farlo bisogna costruire il prodotto tensore tra i due automi, che corrisponde ad ``appiccicare" una copia del DFSA ad ogni stato del PDA con le transizioni giuste, e così si ottiene un nuovo PDA.
+\end{proof}
+
+Vediamo ora una proprietà che è decidibile per i linguaggi liberi, ma non in generale.
+
+\begin{prop}
+	Dato un linguaggio libero $L$ è decidibile se $L = \emptyset$.
+\end{prop}
+\begin{proof}
+	Definiamo ricorsivamente i seguenti insemi:
+	\begin{align*}
+		&I_0 = \Lambda \\
+		&I_{i+1} = I_i \cup \lbrace A \in N \svert \exists \alpha \in I_i^* \,.\; A \rightarrow \alpha \in P \rbrace
+	\end{align*}
+	$L = \emptyset$ se e solo se $S \notin I_{\abs{N}}$.
+	
+	Intuitivamente ad ogni passo si aggiungono all'insieme $I_i$ i non terminali da cui si riesce a creare una stringa di soli terminali (che quindi fa parte del linguaggio) in $i$ passi, quindi $L$ è vuoto se e solo se alla fine $S$ non è tra quei non terminali.
+	
+	Dato $I_i$ la definizione di $I_{i+1}$ è algoritmica: si considera ogni produzione e si verifica se la stringa a destra è o meno in $I_i^*$, e nel caso si aggiunge la categoria sintattica a sinistra all'insieme.
+	
+	Se $I_{i+1} = I_i$ allora per ogni $j \ge i$ vale $I_j = I_i$: dato che la costruzione eseguita non dipende da $i$, se $I_{i+1} = I_i$ anche $I_{i+2} = I_{i+1}$, e così per induzione si dimostra che la successione è costante da quel punto in poi. Dato che $(I_i \setminus \Lambda) \subseteq N$, sicuramente $I_{\abs{N}} = I_{\abs{N} + 1}$.
+
+	Dimostro per induzione su $i$ che $A \in N$ appartiene a $I_{i}+1 \setminus I_i$ se e solo se può generare una stringa di soli terminali con un albero di derivazione di altezza $i$. Il passo base $i = 1$ è vero perché $A \in I_1 \setminus I_0$ se e solo se esiste una produzione $A \rightarrow w$ con $w \in I_0^* = \Lambda^*$, quindi posso derivare una stringa di soli terminali con un albero di altezza $1$.
+	
+	Suppongo ora che la tesi sia vera per $I_n$. $A \in I_{n+1} \setminus I_n$ se e solo se esiste una produzione del tipo $A \rightarrow \alpha$ con $\alpha \in I_n^*$ e $A \notin I_n$. $\alpha$ è composto solo da terminali e non terminali in $I_n$, che quindi possono essere ridotti ad una stringa di terminali con un albero di altezza al più $n$. Se inoltre tutti i simboli che appaiono in $\alpha$ potessero ridursi con un albero di altezza minore di $n$ allora avrei che tutti questi simboli stanno già in $I_{n-1}$ e quindi $A \in I_n$. Quindi $A$ si può ridurre ad una stringa di soli terminali passando per $\alpha$ con un albero di altezza esattamente $n+1$ (uno per raggiungere $\alpha$, più la massima altezza da un carattere di $\alpha$ alle foglie che è $n$).
+	
+	Quindi $L \neq \emptyset$ se e solo se 
+	\[
+	S \in \bigcup\limits_{i \in \setN} I_i = I_{\abs{N}}
+	\]
+\end{proof}
+
+\subsubsection{Automi a pila}
+I linguaggi liberi non possono essere riconosciuti dai DFSA, e serve quindi introdurre un nuovo tipo di automi.
+
+\begin{definition}[Automa a pila]
+	Un automa a pila (AP o PDA, dall'inglese) è una settupla $( Q, \Lambda, R, \Delta, q_0, Z, F )$ dove
+	\begin{itemize}
+		\item $Q$ è l'insieme degli stati
+		\item $\Lambda$ è l'alfabeto del linguaggio riconosciuto dall'automa
+		\item $R$ è l'alfabeto della pila (simboli non terminali)
+		\item $\Delta \subseteq (Q \times \Lambda \cup \{ \epsilon \} \times R) \times (Q \times R^*)$ è la relazione di transizione
+		\item $q_0 \in Q$ è lo stato iniziale
+		\item $Z \in R$ è il carattere iniziale della pila
+		\item $F \subseteq Q$ è l'insieme degli stati finali
+	\end{itemize}
+\end{definition}
+
+\begin{definition}
+	Una \textit{configurazione} di un PDA è una terna $(q, s, \gamma)$ dove $q$ è lo stato dell'automa, $s$ è la stringa ancora da leggere sul nastro e $\gamma$ è la stringa che rappresenta la pila corrente.
+	
+	Una transizione del PDA $\mathcal{P}$ è definita come $(p, \alpha s, \xi\gamma) \Rightarrow_{\mathcal{P}} (q, s, \xi'\gamma)$ se la quintupla $(p, \alpha, \xi, q, \xi') \in \Delta$, con $\alpha \in \Lambda \cup \{ \epsilon \}$.
+	
+	La chiusura riflessiva e transitiva $\Rightarrow_\mathcal{P}^*$ di questa relazione è la relazione di transizione generalizzata dell'automa.
+	
+	Un PDA accetta una stringa $s$:
+	\begin{itemize}
+		\item \textit{per stati finali} se e solo se $(q_0, s, Z) \Rightarrow_{\mathcal{P}}^* (q, \epsilon, \gamma)$ con $q \in F$ e $\gamma \in R^*$ arbitrario.
+		\item \textit{per pila vuota} se e solo se $(q_0, s, Z) \Rightarrow_{\mathcal{P}}^* (q, \epsilon, \epsilon)$ con $q \in Q$ arbitrario.
+	\end{itemize}
+\end{definition}
+
+Si noti che un automa a pila non è deterministico. Si noti inoltre che un passo di computazione può leggere \textit{zero} o un carattere dalla stringa, ma estrae sempre un carattere dalla pila, e può inserire nella pila un qualsiasi numero di caratteri.
+
+Come si può immaginare, i due metodi introdotti per l'accettazione di un automa a pila sono del tutto equivalenti:
+
+\begin{theorem}
+	Per ogni automa a pila $\mathcal{P}$ ne esiste un altro $\mathcal{P}'$ tale che ogni stringa $s$ viene accettata da $\mathcal{P}$ per stati finali se e solo se viene accettata da $\mathcal{P}'$ per pila vuota e viceversa.
+\end{theorem}
+\begin{proof}[Idea]
+	\todo{Andrebbe fatta davvero...}
+	Per passare dagli stati finali alla pila vuota si aggiunge uno stato pozzo che svuota la pila raggiungibile da tutti e soli gli stati finali con una $\epsilon$-transizione.
+	
+	Per passare da pila vuota a stato finale si aggiunge una transizione da ogni stato all'unico stato finale che richiede di estrarre il carattere iniziale $Z$ dalla pila.
+\end{proof}
+
+\begin{example}
+	Il linguaggio $L = \{ ww^R \svert w \in \{ a, b \}^* \}$, dove con $w^R$ si indica la stringa $w$ letta al contrario, non è regolare. Per il pumping lemma infatti, fissato $n$, basta usare come stringa $w = a^nba^n$ e si verifica che non è regolare.
+	
+	Vediamo ora un automa a pila che riconosce questo linguaggio:
+
+	\vspace{0.2cm}
+	\begin{tabular}{ *{3}{c} | *{2}{c} }
+		$q_0$ & $\alpha$ & $\gamma$ & $q_0$ & $\alpha \gamma$ \\
+		$q_0$ & $\alpha$ & $\gamma$ & $q_1$ & $\gamma$ \\
+		$q_0$ & $\alpha$ & $\alpha$ & $q_1$ & $\epsilon$ \\
+		$q_1$ & $\alpha$ & $\alpha$ & $q_1$ & $\epsilon$ \\
+	\end{tabular}
+	\vspace{0.2cm}
+
+	dove $\alpha$ e $\gamma$ possono essere $a$ o $b$, utilizzati per compattezza di notazione, e l'unico stato finale è $q_1$.
+	
+	Questo automa riconosce il linguaggio perché memorizza nella pila la sequenza di caratteri prima della metà, dopodiché inizia a leggere i caratteri dopo la metà confrontandoli con la pila e rimuovendoli dalla stessa. Se il carattere letto non è uguale a quello della pila si blocca, quindi non riconosce la stringa. Se arriva alla fine con stringa e pila vuota allora queste erano uguali, quindi la stringa è palindroma. La scelta di dove sia la metà è arbitraria, data dal non determinismo.
+\end{example}
+
+Ora possiamo dimostrare l'equivalenza
+\begin{lemma}
+	Data una grammatica libera esiste un PDA che riconosce il linguaggio generato da quella grammatica.
+\end{lemma}
+\begin{proof}
+	Possiamo supporre senza perdita di generalità che la grammatica sia in forma normale di Greibach.
+	
+	Data $G = (N, \Lambda, S, P)$ in forma normale di Greibach, costruiamo l'automa a pila
+	\[
+	(\{ p, q \}, \Lambda, N, t, p, \{ q \})
+	\]
+	dove $t$ è definita come $\{(p, \epsilon, \epsilon, q, S) \} \cup \{ (q, a, A, q, \alpha) \ \vert \ A \rightarrow a\alpha \in P \}$
+	
+	Questo automa riconosce le stringhe prodotte dalla grammatica perché inizialmente mette nella pila la categoria sintattica iniziale $S$, dopodiché ogni volta che legge un carattere guarda la prima categoria sintattica della pila e sceglie una produzione che, a partire da quella categoria sintattica, produca il simbolo appena letto, e aggiunge alla pila le categorie sintattiche aggiunte dopo dalla produzione. In questo modo la pila contiene sempre la successione delle categorie sintattiche che, una volta estese nel modo corretto, producono esattamente la parte di stringa che l'automa deve ancora leggere.
+	
+	Il fatto che l'automa riesca a scegliere il ``modo corretto" è dato dal non determinismo.
+\end{proof}
+
+\begin{lemma}
+	Dato un linguaggio riconosciuto da un PDA esiste una grammatica regolare che lo genera.
+\end{lemma}
+\begin{proof}
+	$\,$
+	\todo{da fare}
+\end{proof}
+
+Un'ultima proprietà degli automi a pila che enunciamo senza dimostrare è la seguente:
+\begin{prop}
+	Non è decidibile se due automi a pila accettano lo stesso linguaggio.
+\end{prop}
+
+Purtroppo i PDA di cui abbiamo parlato fin'ora sono non deterministici, mentre noi preferiremmo una versione deterministica per semplicità di simulazione. Diamo quindi la definizione di
+\begin{definition}[Automa a pila deterministico]
+	Un automa a pila la cui relazione di transizione $\Delta$ si in realtà una funzione si dice deterministico.
+\end{definition}
+
+La speranza è che, come nel caso degli automi a stati finiti, anche i PDA deterministici siano equivalenti ai PDA. Purtroppo la risposta è negativa: i PDA deterministici sono una sottoclasse stretta dei PDA. Non daremo una dimostrazione di questo fatto, ma ne vedremo tramite un esempio una giustificazione intuitiva.
+
+\begin{example}
+	Il linguaggio $L = \lbrace ww^R \svert w \in \Lambda^* \rbrace$ è libero ma non deterministico. Intuitivamente un PDA non sa quando deve smettere di ``memorizzare" $w$ nella pila e iniziare a svuotarla per riconoscere $w^R$. Ovviamente un PDA normale può scegliere nondeterministicamente questo momento, ma un PDA deterministico non ha questa possibilità.
+\end{example}
+
+Possiamo invece osservare che i PDA deterministici sono una classe strettamente maggiore dei linguaggi regolari:
+\begin{example}
+	Il linguaggio delle parentesi bilanciate $L$ è generato dalla seguente grammatica
+	\[
+	S \rightarrow (S) \svert SS \svert \epsilon
+	\]
+	Questo linguaggio non è regolare come si può osservare usando il pumping lemmma su $(^n)^n$, ma è riconosciuto dal PDA deterministico
+	
+	\vspace{0.2cm}
+	\begin{tabular}{ *{3}{c} | *{2}{c} }
+		$q_0$ & $($ & $Z$ & $q_0$ & $AZ$ \\
+		$q_0$ & $($ & $A$ & $q_0$ & $AA$ \\
+		$q_0$ & $)$ & $A$ & $q_1$ & $\epsilon$ \\
+		$q_1$ & $($ & $A$ & $q_0$ & $AA$ \\
+		$q_1$ & $)$ & $A$ & $q_1$ & $\epsilon$ \\
+		\hline
+		$q_1$ & $($ & $Z$ & \multicolumn{2}{c}{errore}
+	\end{tabular}
+	\vspace{0.2cm}
+
+	\todo{Il disegno perché così si capisce poco}
+
+	con $q_0$ unico stato finale. Questo automa accetta tutte e sole le stringhe di parentesi bilanciate, ed è deterministico.
+\end{example}
+
+Finiamo enunciando due proprietà dei PDA deterministici, di cui la seconda senza dimostrazione, che li rendono ancora più interessanti dei PDA.
+\begin{prop}
+	$ $
+	
+	\begin{itemize}
+		\item Un linguaggio libero deterministico è non ambiguo.
+		\item È decidibile se due PDA deterministici accettano lo stesso linguaggio.
+	\end{itemize}
+\end{prop}
+\begin{proof}[Idea]
+	\todo{Da fare pure questa}
+	Si consideri un PDA deterministico che accetta il linguaggio. Allora le mosse di questo PDA definiscono esattamente un'unico albero di derivazione per una stringa, quindi la grammatica ottenuta da questo PDA non è ambigua.
+\end{proof}
+
+I linguaggi deterministici riescono quindi a catturare le stringhe di parentesi bilanciate, caratteristica irrinunciabile di qualsiasi analizzatore sintattico di un linguaggio di programmazione, e sono particolarmente più semplici da riconoscere dei linguaggi liberi generici. Per ragioni di efficienza però vorremo restringerci ad alcune sottoclassi proprie ancora più deboli, ma più efficienti da riconoscere.
+
+\subsection{Parsing top-down e linguaggi LL}
+\todo{Il capitolo}
+
+\subsection{Parsing bottom-up e linguaggi LR}
+L'idea del parsing bottom-up e il contrario del parsing top-down: si parte dalla stringa e si applicano le produzioni ``al contrario", ovvero partendo da stringhe di simboli e ottenendo delle categorie sintattiche, fino a raggiungere il simbolo iniziale. L'applicazione al contrario viene fatta a partire dalla sinistra della stringa, ottenendo così una derivazione canonica destra (perché l'applicazione delle produzioni nella derivazione è al contrario rispetto a come vengono riconosciute).
+
+Il procedimento viene eseguito da parser LR, che sono simili agli automi a pila ma hanno alcune differenze abbastanza sostanziali. L'idea è di avere una specie di automa a pila, in cui la pila contiene delle coppie (carattere o non terminale, stato) perché vuole tenere una qualche traccia degli stati attraversati, e lo fa appunto nella forma della pila.
+
+Data una grammatica $G = (N, \Lambda, P, S \in N)$, un parser LR per $G$ è una tripla $(Q, T, q_0)$ in cui
+\begin{itemize}
+	\item $Q$ sono gli stati del parser LR
+	\item $q_0 \in Q$ è lo stato iniziale del parser
+	\item $T$ è la tabella di parsing
+\end{itemize}
+Questo parser accetta solo stringhe terminate da un carattere speciale \#, chiamato marca di fine stringa, che si assume non essere nell'alfabeto $\Lambda$ e apparire solo in chiusura delle stringhe. Una configurazione di un parser LR è una coppia $(\Gamma, w)$ dove
+\begin{itemize}
+	\item $\Gamma \in ((N \cup \Lambda \cup \{ \epsilon \}) \times Q)^*$ è lo stato della pila (una stringa di coppie (simbolo, stato), come già accennato)
+	\item $w \in \Lambda^* \#$ è la stringa ancora da esaminare, terminata dal carattere \#.
+\end{itemize}
+
+La tabella di parsing è una funzione parziale $T: (\Lambda \cup \{ \# \} \cup N) \times Q \rightarrow \text{actions}$ che associa ad ogni combinazione di simbolo letto dalla stringa e stato del parser un'azione da eseguire. Le azioni sono di 5 tipi:
+\begin{enumerate}
+	\item \textit{shift $q$} con $q \in Q$.
+	\item \textit{reduce $A \rightarrow \alpha$} con $A \rightarrow \alpha \in P$.
+	\item \textit{accept}.
+	\item \textit{goto $q$} con $q \in Q$.
+	\item \textit{error}
+\end{enumerate}
+
+Inoltre una tabella di parsing ben formata rispetta i seguenti vincoli:
+\begin{itemize}
+	\item le azioni 4 possono apparire solo in $T[A, q]$ per $A \in N$.
+	\item le azioni 1 e 2 possono apparire solo in $T(a, q)$ per $a \in \Lambda \cup \{ \# \}$.
+	\item le azioni 3 possono apparire solo in $T(\#, q)$.
+\end{itemize}
+
+Le transizioni del parser LR vengono descritte di seguito. Con $\Gamma$ indichiamo il resto della pila, non interessante per la transizione corrente, mentre con le lettere $X$ indichiamo un carattere in $N \cup \Lambda$.
+\begin{itemize}
+	\item $(\Gamma (X, p), a w) \Rightarrow ( \Gamma (X, p) (a, q), w)$ se $T[a, p] = \textit{shift }q$. Questa transizione ``sposta" il carattere corrente dalla stringa alla pila (da cui \textit{shift}), e passa nello stato $q$.
+	\item $(\Gamma (X, p) (X_1, p_1) \dots (X_n, p_n), a w) \Rightarrow ( \Gamma (X, p) (A, q), a w)$ se $T[a, p_n] = \textit{reduce }A \rightarrow X_1 \dots X_n$ e $T[A, p] = \textit{goto }q$. Questa transizione ``applica al contrario" la produzione $A \rightarrow X_1 \dots X_n$ e si sposta nello stato $q$, che dipende solo dal non terminale della produzione e dallo stato che l'automa aveva prima di iniziare a leggere i caratteri della produzione (che era memorizzato nella pila).
+	\item $(\Gamma (X, p), \#) \Rightarrow \text{accetta la stringa}$ se $T[\#, p] = \textit{accept}$.
+	\item $(\Gamma (X, p), a w) \Rightarrow \text{errore}$ se $T[a, p] = \textit{error}$.
+\end{itemize}
+
+Il parser LR inizia con la pila contenente solo la coppia $(\epsilon, q_0)$. Si può notare dalle regole di transizione che $\epsilon$ non viene mai aggiunto alla pila, e infatti si può trovare solo nella prima posizione. In realtà durante il parsing di una stringa del linguaggio il carattere del primo elemento della pila non viene neanche mai letto, quindi si potrebbe sostituire $\epsilon$ con qualsiasi altro carattere. Utilizzare $\epsilon$ però vedremo sarà utile per la dimostrazione che i parser LR funzionano correttamente.
+
+Il problema chiaramente è come costruire la tabella di parsing in modo da sapere se da un certo stato sia necessario applicare una certa produzione al contrario o se serva aggiungere il carattere corrente alla pila. Di nuovo nel fare questo consideremo solo una classe ristretta di parser LR, i chiamati LR(0). Il motivo è che, una volta compilata la tabella di parsing, questa non usa look-ahead dei caratteri, ovvero non legge caratteri successivi a quello corrente per scegliere quale regola applicare. Esistono varianti in cui si usano fino a $k$ caratteri oltre a quello corrente, e queste definiscono i parser LR($k$).
+
+Vediamo subito alcune definizioni, poi spiegheremo come sono nate:
+\begin{definition}
+	Data una grammatica $G$ chiamiamo:
+	\begin{itemize}
+		\item \textit{item LR(0)} un oggetto della forma $[ A \rightarrow \beta_1 . \beta_2 ]$ con $A \rightarrow \beta_1 \beta_2$ una produzione della grammatica.
+		\item \textit{chiusura} di un insieme $I$ di item il minimo insieme $CH(I)$ tale che
+		\[
+		CH(I) = I \cup \bigcup\limits_{[ A \rightarrow \alpha . B\gamma ] \in CH(I)} \left\lbrace [ B \rightarrow . \beta ] \svert B \rightarrow \beta \in P \right\rbrace
+		\]
+	\end{itemize}
+
+	A volte utilizzeremo il termine \textit{item} per indicare la produzione $A \rightarrow \beta_1 \beta_2$ che l'ha generato.
+\end{definition}
+
+L'idea è la seguente: si consideri una stringa $s$ per cui, nella sua derivazione canonica destra, una certa transizione sia dettata dalla produzione $A \rightarrow \beta x$ con $x \in \Lambda$:
+\[ S \Rightarrow^* \alpha A w \Rightarrow \alpha \beta x w \Rightarrow^* s \]
+in cui $w \in \Lambda^*$ perché supponiamo che la derivazione sia canonica destra.
+Allora $\alpha A$, così come $\alpha \beta$ e $\alpha \beta x$, sono prefissi ``legali" di stringhe del linguaggio, nel senso che possiamo completarli con stringhe di \textit{soli terminali}. Nel riconoscimento di $s$, un parser LR funzionante si troverebbe ad avere nella pila il prefisso legale $\alpha \beta$ (considerando solo la parte di caratteri della pila, non gli stati) e la stringa $xw$ ancora da analizzare. Vorremmo allora che il parser esegua uno \textit{shift} per aggiungere $x$ alla pila, poi effettuare una riduzione con $A \rightarrow \beta x$. Possiamo codificare questa informazione in un'unico oggetto, che chiamiamo \textit{item}:
+\[
+[ A \rightarrow \beta . x ]
+\]
+dove il $.$ separa la parte già vista della stringa (quella nella pila) dalla parte ancora da vedere. In realtà questo concetto si può generalizzare anche se $x$ è una stringa formata non solo da terminali, ottenendo la definizione data.
+
+Ora supponiamo che il parser LR abbia nella pila $\alpha$, e che esista la produzione $A \rightarrow \beta_1 \beta_2$. Vorremo quindi sapere tutti gli item che potrebbero essere applicati a questo stato per continuare il parsing: vogliamo trovare
+\[
+\left\lbrace [ A \rightarrow \beta_1 . \beta_2 ] \svert \beta_1 \text{ è  un suffisso di } \alpha \right\rbrace
+\]
+
+A questo punto questo insieme è lo ``stato" del parser LR, e vogliamo vedere in base al prossimo carattere come evolve questo stato. Per farlo dobbiamo capire tutti i possibili terminali con cui uno di questi item può continuare, definendo la chiusura di un insieme di item, ovvero il minimo insieme di item per cui se ho un item che ha un nonterminale dopo il $.$ allora ho anche gli item che hanno quel nonterminale come termine sinistro della produzione.
+
+Definiamo quindi un DFSA che riconosce approssimativamente il linguaggio LR(0). Questo DFSA opera su stringhe con alfabeto $\Lambda \cup N$, ed hanno come stati insiemi chiusi di item. Le transizioni da uno stato all'altro si definiscono considerando tutti i caratteri che seguono il $.$ negli item dello stato, e per ognuno di questi caratteri si suppone di leggerlo per ottenere gli item la cui chiusura forma il nuovo stato. Formalmente, dato l'insieme $I$ di item si considerano i suoi caratteri
+\[
+c(I) = \{ X \svert \exists [ A \rightarrow \alpha . X \beta ] \in I \} \subseteq \Lambda \cup N
+\]
+
+e per ognuno di questi caratteri $X$ si definisce lo stato 
+\[
+CH\left( \lbrace [ A \rightarrow \alpha X . \beta ] \svert [ A \rightarrow \alpha . X \beta ] \in I \rbrace \right)
+\]
+
+come il punto di arrivo della transizione da $CH(I)$ con il carattere $X$.
+
+Come stato iniziale di questo automa prendiamo la chiusura di un insieme di item particolare, ovvero
+\[
+\{ [ S' \rightarrow .S ] \}
+\]
+dove $S$ è il simbolo inziale di $G$, ed $S'$ è un nuovo simbolo che introduciamo, che ha come unica produzione quella inserita nell'item dello stato iniziale. Formalmente parlando si può aumentare la grammatica $G$ aggiungendo l'unica produzione
+\[
+S' \rightarrow S\#
+\]
+per fare in modo che produca solo stringhe terminate da \# ed in più avere il simbolo iniziale che non appare mai a destra di una produzione.
+
+Con questo stato iniziale abbiamo completamente definito l'automa, e vediamo ora come costruire la tabella di parsing a partire da questo. Gli stati del parser LR sono gli stessi dell'automa.
+
+\begin{itemize}
+	\item Gli elementi di $T[A, q]$ con $A \in N$ vengono ``copiati" dall'automa, nel senso che se questo aveva la transizione $t(q, A) = q'$ si imposta $T[A, q] = \textit{goto } q'$.
+	\item Gli elementi $T[a, q]$ con $a \in \Lambda$ vengono ``copiati" dall'automa come \textit{shift}, nel senso che se questo aveva la transizione $t(q, a) = q'$ si imposta $T[a, q] = \textit{shift } q'$.
+	\item Se uno stato $q$ contiene l'item $[ A \rightarrow \alpha . ]$ si imposta $T[a, q] = \textit{reduce } A \rightarrow \alpha$ per tutti gli $a \in \Lambda$.
+	\item Si impostano gli elementi $T[\#, q] = \textit{accept}$ per tutti gli stati $q$ che contengono l'item $[ S' \rightarrow S. \# ]$.
+	\item Tutti gli elementi ancora vuoti della tabella di parsing si impostano ad errore.
+\end{itemize}
+
+A questo punto la tabella di parsing è stata compilata correttamente solo se non ci sono conflitti in nessuna cella, e in tal caso si dice che la grammatica $G$ è $LR(0)$. La dimostrazione che il parser così costruito riconosce effettivamente la grammatica $G$ viene fatta in una sezione apposta.
+
+Questa definizione, come anticipato, si può generalizzare a aggiungendo un look-ahead nella definizione degli item: un item $LR(k)$ è essenzialmente uguale ad un item $LR(0)$ ma si aggiunge la possibilità di leggere  fino a $k$ caratteri dopo quello corrente per scegliere in quale insieme di item muoversi. In questo modo si generano i parser $LR(k)$, di cui però non parleremo.
+
+Enunciamo però senza dimostrazione i seguenti fatti sulle grammatiche $LR(k)$
+\begin{theorem}
+	Valgono le seguenti affermazioni:
+	\begin{itemize}
+		\item Una grammatica $LR(k)$ è deterministica.
+		\item Fissato $k$, è decidibile se un grammatica $G$ è $LR(k)$.
+		\item Per ogni linguaggio deterministico esiste una grammatica $LR(k)$ per qualche $k$ che lo genera.
+		\item Per ogni grammatica $LR(k)$ esiste una grammatica $LR(1)$ equivalente-
+	\end{itemize}
+\end{theorem}
+
+Quindi la classe delle grammatiche $LR(1)$ è in realtà uguale a quella delle grammatiche deterministiche, che siamo quindi in grado di parsare efficientemente.
+
+Nella pratica però non si usano proprio grammatiche $LR(1)$ perché hanno automi a molti stati. Si cercano quindi delle sottoclassi, comunque abbastanza espressive, ma che permettano parser più compatti: sono state identificate le classi $SLR$ e $LALR$. Entrambe si basano essenzialmente sull'idea di generare dei look-ahead, ma in modo approssimato a differenza delle grammatiche $LR(1)$: i linguaggi $SLR$, invece di impostare tutti gli elementi della tabella di parsing $T[a, q] = \textit{reduce } A \rightarrow \alpha$ se $q$ contiene l'item $[ A \rightarrow \alpha . ]$ lo fanno solo se $a \in FOLLOW(A)$, generando in questo modo meno conflitti. I parser LALR seguono la stessa idea, cercando di restringere ulteriormente l'insieme di caratteri a cui $a$ può appartenere.
+
+\subsubsection{Dimostrazione che i parser LR funzionano}
+
+In realtà questa sezione è una serie di appunti più o meno organizzati.
+
+Notazione: data una stringa $\beta$ indico con $\beta[i]$ il carattere all'indice $i$ della stringa $\beta$ (con gli indici che iniziano da 0), con $\beta[:i]$ il prefisso di $\beta$ di lunghezza $i$ (ovvero che contiene i caratteri dall'indice $0$ al $i - 1$) e con con $\beta[i:]$ il suffisso di $\beta$ di lunghezza $i$ (ovvero che contiene i caratteri dall'indice $i$ al $\abs*{\beta} - 1$).
+
+Data una stringa $\beta$ indichiamo poi un prefisso e un suffisso particolari: $\beta^{(s)}$ è il più lungo suffisso di $\beta$ composto da soli terminali, e $\beta^{(p)}$ il prefisso che precede l'ultimo nonterminale. In simboli, detto $l$ il massimo indice tale per cui $\beta[l]$ è un nonterminale, si ha che $\beta^{(p)} = \beta[:l]$ e che $\beta^{(s)} = \beta[l + 1:]$. Se $\beta$ non contiene nonterminali diremo che $\beta^{(p)} = \epsilon$; viceversa se l'ultimo carattere di $\beta$ è un nonterminale allora diremo che $\beta^{(s)} = \epsilon$.
+
+Parleremo sempre di grammatiche \textit{aumentate}, ovvero in cui si aggiunge un nuovo simbolo $S'$, che è iniziale per la grammatica aumentata, e la produzione $S' \rightarrow S$. Inoltre considererò solo grammatiche in cui ogni nonterminale può essere ridotto ad una stringa di soli terminali: se così non fosse si può semplicemente "togliere" quel non terminale ottenendo una grammatica equivalente.
+
+Una \textit{forma canonica destra} è una stringa $\alpha w \in \left( \Lambda \cup N \right)^*$ che appare in una derivazione canonica destra (indicata con $\Rightarrow_{rm}$) tale che $w \in \Lambda^*$. Per essere più precisi spesso indicheremo uan forma canonica destra come $\alpha \beta w$ per intendere che la derivazione che porta ad essa è
+\[
+S \Rightarrow^*_{rm} \alpha A w \Rightarrow_{rm} \alpha \beta w
+\]
+con la produzione $A \rightarrow \beta$ nella grammatica (e sempre $w \in \Lambda^*$).
+
+Definizione utile:
+\begin{definition}[Prefisso attuabile]
+	Una stringa $\gamma \in \left( \Lambda \cup N \right)^*$ si dice prefisso attuabile se è un prefisso di una forma canonica destra $\alpha\beta w$ che sia anche un prefisso di $\alpha \beta$. Se il prefisso è proprio $\alpha \beta$ dico che è un prefisso attuabile \textit{completo}.
+\end{definition}
+
+\begin{remark}
+	Una stringa è un prefisso attuabile se e solo se è un prefisso di un prefisso attuabile completo.
+\end{remark}
+
+L'idea di questa definizione è che un parser LR, durante il parsing di una stringa del linguaggio, ha nello stack in ogni momento un prefisso attuabile (in sostanza, come vedremo, questi si ottengono applicando le regole della grammatica in una derivazione canonica destra).
+
+È chiaro che lo stack deve avere un prefisso di una forma canonica destra (perché opera aggiungendo caratteri dalla stringa e riducendo la cosa più a destra che ha letto e che può ridurre), vedremo che in realtà si limita a questo sottoinsieme.
+Intuitivamente proprio perché appena può ridurre lo fa l'unica cosa che può essere non ridotta è la testa se è un prefisso di $\beta$ (in realtà di qualcosa a cui $\beta$ si riduce con $\Rightarrow^*_{rm}$) e non tutta la stringa.
+
+Consideriamo ora il DFSA che ``riconosce approssimativamente il linguaggio LR(0)", che chiameremo $\mathcal{A}_{LR(0)}$, definito nella costruzione della tabella di parsing. Si può osservare che il DFSA così definito in realtà è il risultato della riduzione di un certo $\epsilon$-NFSA, che chiameremo sempre $\mathcal{A}_{LR(0)}$ (non ci sarà ambiguità perché parleremo esclusivamente di quello non deterministico).
+
+Definiamo qui precisamente il NFSA $\mathcal{A}_{LR(0)}$: i suoi stati sono tutti gli item ottenuti dalla grammatica, e le transizioni sono le seguenti:
+\begin{itemize}
+	\item Dall'item $[ A \rightarrow \beta_1 . X \beta_2 ]$ a $[ A \rightarrow \beta_1 X . \beta_2 ]$ tramite il carattere $X \in \Lambda \cup N$.
+	\item Se $B$ è un nonterminale, dall'item $[ A \rightarrow \beta_1 . B \beta_2 ]$ a tutti quelli della forma $[ B \rightarrow . \gamma ]$ tramite $\epsilon$.
+\end{itemize}
+
+Per osservare che il DFSA è equivalente al NFSA qui definito basta notare che $CH(I)$ è esattamente la procedura $\epsilon-cl$ che abbiamo definito per la riduzione del lemma \ref{th:epsilon-nfsa-reduction} e il resto corrisponde alla costruzione dell'insieme delle parti usato per ridurre gli NFSA ai DFSA.
+Non dimostreremo questa affermazione perché è un noioso (seppur facile) esercizio.
+
+Prima di dimostrare il prossimo teorema diamo il seguente lemma, che spiega un po' come sono fatte le derivazioni canoniche destre e i prefissi :
+\begin{lemma}\label{th:carat-pref-attuabili-compl}
+	Sia $G$ una grammatica con produzioni $N_i \rightarrow \beta_i$.
+
+	Una stringa $\gamma \in \left( \Lambda \cup N \right)^*$ di terminali e categorie sintattiche è un prefisso attuabile completo per la grammatica $G$ se e solo se esiste una sua scomposizione nella forma
+	\[
+	\gamma = \beta_{i_1}^{(p)}[:l_1] \beta_{i_2}^{(p)}[:l_2] \dots \beta_{i_m}^{(p)}[:l_m] \beta_{i_{m+1}}
+	\]
+	per un qualche numero $m$ in cui, per ogni $j \le m$, vale che $\beta_{i_j}$ contiene almeno un nonterminale e o $l_j = 0$ oppure $\beta_{i_j}[l_j] = N_{i_{j + 1}}$ e tale che $i_1$ sia l'indice della produzione $S' \rightarrow S$.
+\end{lemma}
+
+\begin{proof}
+	La prova è un po' una palla. Ad un certo punto appaiono doppi indici. Lo scrivo giusto per informare il lettore di cosa deve aspettarsi. Dimsotriamo le due implicazioni separatamente.
+	
+	\vspace{0.8cm}
+	Sia $\alpha \beta$ un prefisso attuabile completo, e sia
+	\[
+	S' \xRightarrow{N_0 \rightarrow \beta_0}_{rm} \alpha_1 N_1 w_1 \xRightarrow{N_1 \rightarrow \beta_1}_{rm} \alpha_2 N_2 w_2 \xRightarrow{N_2 \rightarrow \beta_2}_{rm} \dots \Rightarrow_{rm} \alpha_n N_n w_n \xRightarrow{N_n \rightarrow \beta_n}_{rm} \alpha_n \beta_n w_n = \alpha \beta w
+	\]
+	
+	una derivazione canonica destra di $\alpha \beta w$, che termina con l'applicazione della produzione $N_n \rightarrow \beta$.
+	Notare che in questo caso gli indici $i$ delle produzioni non sono gli stessi usati nell'enunciato del lemma, ma servono per indicare la produzione usata al passo $i$ di derivazione (in particolare due indici diversi possono indicare la stessa produzione
+	
+	Nella notazione precedente si intende che che la derivazione $\xRightarrow{N \rightarrow \beta}_{rm}$ è guidata dalla produzione $N \rightarrow \beta$ e che la prima e l'ultima produzione sono
+	\begin{align*}
+	S' = N_0 &\rightarrow \beta_0 = \alpha_1 N_1 w_1 = \epsilon S \epsilon\\
+	N_n &\rightarrow \beta_n = \beta
+	\end{align*}
+	
+	Inoltre $w_i$, $N_i$ ed $\alpha_i$ sono esattamente il suffisso di soli terminali, il nonterminale che lo precede e il restante prefisso del risultato di quel passo di derivazione. Dato che la derivazione è canonica destra, ad ogni passo deve essere espanso proprio $N_i$, come evidenziato dalla produzione che guida ogni passo.
+	
+	Si consideri ora $\beta_i$. Questa stringa può contenere un nonterminale o meno. Nel primo caso posso scomporlo come
+	\[
+	\beta_i = \beta_i^{(p)} N_{i+1} \beta_i^{(s)}
+	\]
+	da cui ottengo che
+	\[
+	\alpha_{i+1} N_{i+1} w_{i+1} = \alpha_i \beta_i w_i = \alpha_i \beta_i^{(p)} N_{i+1} \beta_i^{(s)} w_i
+	\]
+	ovvero
+	\[
+	\alpha_{i+1} = \alpha_i \beta_i^{(p)}
+	\]
+	
+	Viceversa se $\beta_i$ non contiene nonterminali si ha che
+	\[
+	\alpha_{i+1} N_{i+1} w_{i+1} = \alpha_i \beta_i w_i = \alpha_i^{(p)} N_{i+1} \alpha_i^{(s)} \beta_i w_i
+	\]
+	ovvero
+	\[
+	\alpha_{i+1} = \alpha_i^{(p)}
+	\]
+	
+	Mettendo insieme queste due si ottiene
+	\[
+	\alpha_{i+1} = \begin{cases*}
+	\alpha_i \beta_i^{(p)} & \text{se $\beta_i$ contiene dei nonterminali} \\
+	\alpha_i^{(p)} & \text{altrimenti}
+	\end{cases*}
+	\]
+	ovvero uno tra $\alpha_{i+1}$ e $\alpha_i$ è un prefisso dell'altro.
+	
+	Dimostro quindi per induzione sul numero $n$ di passi di derivazione la tesi, prendendo come indici $i_j$ la successione crescente di indici dei $\beta_i$ tali per cui questi contengono dei nonterminali, e come $m$ il numero di tali indici.
+	
+	La tesi è equivalente a dire che esistono delle lunghezze $l_j$ (eventualmente uguali a 0) per cui si può scomporre la stringa $\alpha$ come
+	\[
+	\alpha = \alpha_n = \beta_{i_1}^{(p)}[:l_1] \beta_{i_2}^{(p)}[:l_2] \dots \beta_{i_m}^{(p)}[:l_m]
+	\]
+	e tali che per ogni $j \le m$ o $l_j = 0$ oppure $\beta_{i_j}[l_j] = N_{i_{j + 1}}$, dato che l'ultimo prefisso $\beta_{i_{m+1}}$ è proprio $\beta_n$.
+	
+	Il passo base dell'induzione è ovvio: $\alpha_1 = \beta_0^{(p)}$ e il carattere successivo di $\beta_0$ è proprio $N_1$; inoltre la prima produzione della derivazione è proprio $S' \rightarrow S$. Suppongo ora la tesi per il passo di derivazione $n$ e verifico che è vera per $n + 1$, distinguendo due casi.
+	
+	Se $\beta_i$ contiene dei nonterminali allora $\alpha_{n+1} = \alpha_n \beta_n^{(p)}$ ed $i_{m+1} = n$. Quindi la tesi è vera prendendo la scomposizione di $\alpha_n$ e aggiungendo $l_{m+1} = \abs*{\beta_n^{(p)}}$ e $\beta_n^{(p)}[:l_{m+1}]$, dato che per definizione $\beta_n[l_{m+1}] = N_{n+1}$. Inoltre $\beta_{i_m}[l_m]$ è il nonterminale espanso nell'ultima derivazione, e deve quindi essere $N_n = N_{i_{m+1}}$, quindi questa scomposizione rispetta la tesi.
+	
+	Se invece $\beta_i$ contiene solo dei terminali si ha che $\alpha_{n+1} = \alpha_n^{(p)}$, quindi il numero di indici $i$ per cui $\beta_i$ contiene dei nonterminali resta $m$. Basta allora considerare la scomposizione di $\alpha_n$ e cambiare solo $l_m$ per essere l'indice del nonteminale precedente a $\beta_{j_m}[l_m]$. Se questo nonterminale non esistesse si sceglie $l_m = 0$ e si ripete il procedimento per $l_{m-1}$, e si itera questo procedimento finché non si trova un $\bar{j}$ tale che $\beta_{i_{\bar{j}}}$ contenga un nonterminale prima di $\beta_{i_{\bar{j}}}[l_{\bar{j}}]$.
+	Se tale indice $\bar{j}$ esiste, il nonterminale in questione è proprio il più a destra della stringa, che quindi verrà espanso nel prossimo passo della derivazione canonica destra e deve quindi essere $N_{n+1}$. Se un tale indice invece non esiste allora tutti i $l_j$ sono 0. In entrambi i casi la tesi è rispettata.
+	
+	\vspace{0.8cm}
+	Sia ora
+	\[
+	\gamma = \beta_{i_1}^{(p)}[:l_1] \beta_{i_2}^{(p)}[:l_2] \dots \beta_{i_m}^{(p)}[:l_m] \beta_{i_{m+1}}
+	\]
+	per un qualche numero $m$ in cui, per ogni $j \le m$, vale che $\beta_{i_j}$ contiene almeno un nonterminale e o $l_j = 0$ oppure $\beta_{i_j}[l_j] = N_{i_{j + 1}}$ e tale che $i_1$ sia l'indice della produzione $S' \rightarrow S$.
+	
+	Dimostro per induzione su $k \le m$ che i prefissi
+	\[
+	\beta_{i_1}^{(p)}[:l_1] \beta_{i_2}^{(p)}[:l_2] \dots \beta_{i_k}^{(p)}[:l_k] \beta_{i_{k+1}}
+	\]
+	sono tutti prefissi attuabili completi.
+	
+	Per $k = 1$ la tesi è vera: il primo prefisso è $\beta_{i_1}^{(p)} = S^{(p)} = \epsilon$ ed è seguito da $\beta_{i_2}$, e per ipotesi esiste la produzione $S \rightarrow \beta_{i_2}$. Quindi la seguente è una derivazione canonica destra:
+	\[
+	S' \xRightarrow{S' \rightarrow S}_{rm} S \xRightarrow{S \rightarrow \beta_2}_{rm} \beta_{i_2}
+	\]
+	e quindi $\beta_{i_2} = \beta_{i_1}^{(p)}[:l_1] \beta_{i_2}$ è un prefisso attuabile completo.
+	
+	Suppongo ora la tesi per $k - 1$ e la dimostro per $k$. Sia
+	\[
+	\alpha' = \beta_{i_1}^{(p)}[:l_1] \beta_{i_2}^{(p)}[:l_2] \dots \beta_{i_{k-1}}^{(p)}[:l_{k-1}]
+	\]
+	Allora per ipotesi induttiva so che $\alpha' \beta_{i_k}$ è un prefisso attuabile completo, ovvero esiste una derivazione canonica destra
+	\[
+	S' \Rightarrow^*_{rm} \alpha' N_{i_k} w_k \xRightarrow{N_{i_k} \rightarrow \beta_{i_k}}_{rm} \alpha' \beta_{i_k} w_k
+	\]
+	con $w_k$ una stringa di soli terminali.
+	
+	$\beta_{i_k}$ ha un nonterminale in posizione $l_k$ per ipotesi dato che $k \le m$.
+	Per ogni nonteminale $A$ del suffisso $\beta_{i_k}[l_k + 1:]$ posso considerare una derivazione canonica destra
+	\[
+	A \Rightarrow^*_{rm} w_A
+	\]
+	ad una stringa di soli terminali, e combinarle a partire dal nonterminale più a destra di $\beta_{i_k}$ per ottenere una derivazione canonica destra
+	\[
+	\beta_{i_k}[l_k + 1:] \Rightarrow^*_{rm} \tilde{w}
+	\]
+	Allora la derivazione
+	\begin{align*}
+		S' \Rightarrow^*_{rm} &\alpha' \beta_{i_k} w_k \\
+		= \: &\alpha' \beta_{i_k}[:l_k] N_{i_{k+1}} \beta_{i_k}[l_k + 1:] w_k \\
+		\Rightarrow^*_{rm} &\alpha' \beta_{i_k}[:l_k] N_{i_{k+1}} \tilde{w} w_k \\
+		\Rightarrow_{rm} &\alpha' \beta_{i_k}[:l_k] \beta_{i_{k+1}} \tilde{w} w_k
+	\end{align*}
+	è canonica destra è ha come prefisso attuabile completo proprio $\alpha' \beta_{i_k}[:l_k] \beta_{i_{k+1}}$, che è la tesi.
+\end{proof}
+
+\begin{remark}
+	L'idea della scomposizione di $\alpha$ presentata nella prima parte della dimostrazione è che $\alpha$ è la concatenazione di un prefisso di ogni $\beta_i^{(p)}$ per cui $\beta_i$ contiene un nonteminale, e tutti questi prefissi sono seguiti subito dal nonterminale che viene espanso per ottenere il prefisso successivo. Intuitivamente questo è chiaro: se $\beta_i$ contiene un nonterminale al passo $i$ estendo la stringa $\alpha$, ma se al contrario non lo contiene allora la riduco, ``tagliando" quello che c'è prima dell'ultimo nonterminale. Questo può essere ripetuto se espando completamente questo nonterminale ad una stringa di soli terminali, quindi a priori non so a quale nonterminale devo ``tagliare", e perciò mi fermo al nonterminale che, se espanso, produce un ``pezzo utile" per generare $\alpha$.
+	Come vedremo, questa scelta di quale nonterminale ``tagliare" sarà fatta dal nondeterminsmo dell'automa.
+\end{remark}
+
+Con questa caratterizzazione dei prefissi attuabili (completi) si può dimostrare abbastanza facilmente il seguente teorema, che è uno dei due punti principali di questa sezione.
+\begin{theorem}\label{th:pref-attuabile-sse-automa}
+	Una stringa $\gamma$ è un prefisso attuabile se e solo se viene riconosciuto da $\mathcal{A}_{LR(0)}$ (considerando tutti gli stati come finali).
+\end{theorem}
+\begin{proof}
+	Dimostro le due implicazioni separatamente.
+	
+	\vspace{0.8cm}
+	Dato che tutti gli stati di $\mathcal{A}_{LR(0)}$ sono finali, l'automa riconosce una stringa se e solo se esiste un percorso di stati che si può seguire leggendo i caratteri di quella stringa, e quindi riconosce anche ogni suo prefisso. Perciò se l'automa riconosce tutti i prefissi attuabili completi riconosce anche tutti i prefissi attuabili.
+	
+	Sia $\alpha \beta$ un prefisso attuabile completo. Allora per il lemma precedente vale
+	\[
+	\alpha\beta = \beta_{i_1}^{(p)}[:l_1] \beta_{i_2}^{(p)}[:l_2] \dots \beta_{i_m}^{(p)}[:l_m]\beta
+	\]
+	con le caratteristiche dell'enunciato.
+
+	Supponiamo ora che l'automa si trovi nello stato $[ N_{i_j} \rightarrow . \beta_{i_j} ]$ dopo aver letto i caratteri fino a $\beta_{i_{j - 1}}[:l_{j-1}]$. Allora può leggere i caratteri di $\beta_{i_j}$ fino ad $l_j - 1$ per spostarsi nello stato $[ N_{i_j} \rightarrow \beta_{i_j}[:l_j] . \beta_{i_j}[l_j:] ]$. A questo punto $\beta_{i_j}[l_j:]$ inizia con $\beta_{i_j}[l_j]$, che è un nonterminale, quindi esistono delle $\epsilon$-transizioni verso tutti gli item che corrispondono ad espandere questo nonterminale. Questo è il nonterminale $N_{i_{j+1}}$, quindi l'automa può spostarsi nello stato $[ N_{i_{j + 1}} \rightarrow . \beta_{i_{j + 1}} ]$.
+	Per induzione si può quindi verificare che, leggendo la stringa $\alpha$, l'automa termina nell'item $[ N_n \rightarrow . \beta_n ]$, ma ricordando che $\beta_n = \beta$ da questo stato, leggendo i caratteri di $\beta$, si raggiunge lo stato $[ N_n \rightarrow \beta . ]$ e quindi l'automa accetta la stringa $\alpha \beta$.
+
+	\vspace{0.7cm}
+	
+	Sia ora $\gamma$ una stringa accettata dall'automa. Quindi l'automa, seguendo i caratteri di $\gamma$ ed eventualmente delle $\epsilon$-transizioni, raggiunge uno stato. Considerando quali sono le transizioni e le $\epsilon$-transizioni dell'automa deve valere che la stringa $\gamma$ è formata da dei prefissi di alcuni $\beta_i$ parti destre di produzioni della grammatica, e questi prefissi(tranne l'ultimo) devono per forza essere seguiti da un nonterminale perché solo dagli item con un nonterminale prima del punto posso spostarmi in un item ottenuto da un'altra produzione. L'ultimo prefisso può invece essere un qualsiasi prefisso di una parte destra di una produzione.
+	
+	In altre parole
+	\[
+	\gamma = \beta_{i_1}^{(p)}[:l_1] \beta_{i_2}^{(p)}[:l_2] \dots \beta_{i_m}^{(p)}[:l_m] \beta_{i_{m+1}}[:l_{m+1}]
+	\]
+	da cui si ottiene che $\gamma$ è un prefisso di
+	\[
+	\beta_{i_1}^{(p)}[:l_1] \beta_{i_2}^{(p)}[:l_2] \dots \beta_{i_m}^{(p)}[:l_m] \beta_{i_{m+1}}
+	\]
+	
+	Sempre per la struttura di $\mathcal{A}_{LR(0)}$, detto $N_{i_{j + 1}} = \beta_{i_j}[l_j]$ il nonterminale che segue il $j$-esimo prefisso che compone $\gamma$, vale che nella grammatica esiste la produzione $N_{i_{j + 1}} \rightarrow \beta_{i_{j+1}}$. Per il lemma precedente questo è un prefisso attuabile completo, e quindi $\gamma$ è un prefisso attuabile.
+\end{proof}
+
+Il teorema principale della sezione si basa su una caratterizzazione più forte di $\mathcal{A}_{LR(0)}$, che però richiede una definizione:
+\begin{definition}[Item valido]
+	Dato un prefisso attuabile $\gamma$, un item $[ A \rightarrow \beta_1 . \beta_2 ]$ si dice \textit{valido} per quel prefisso se $\gamma = \alpha \beta_1$ ed esiste una derivazione canonica destra
+	\[
+	S' \Rightarrow_{rm}^* \alpha A w \xRightarrow{A \rightarrow \beta}_{rm} \alpha \beta w
+	\]
+	dove $A \rightarrow \beta = \beta_1 \beta_2$ è la produzione che ha generato l'item.
+\end{definition}
+
+In pratica un item è valido per un certo prefisso attuabile se posso ``raggiungere" quel prefisso applicando ``l'item" (ovvero la produzione che l'ha generato) come ultimo passo di derivazione.
+
+Ora possiamo specificare meglio come si comporta $\mathcal{A}_{LR(0)}$ su $\gamma$:
+
+\begin{lemma}
+	L'insieme di item validi per un prefisso attuabile $\gamma$ è esattamente l'insieme degli stati di $\mathcal{A}_{LR(0)}$ raggiunti dall'automa mentre esamina $\gamma$.
+\end{lemma}
+\begin{proof}
+	Come visto nella dimostrazione del teorema \ref{th:pref-attuabile-sse-automa}, tutte e sole le scomposizioni del prefisso attuabile come
+	\[
+	\gamma = \alpha\beta_1 = \beta_{i_1}^{(p)}[:l_1] \beta_{i_2}^{(p)}[:l_2] \dots \beta_{i_m}^{(p)}[:l_m]\beta_1
+	\]
+	corrispondono a percorsi sull'automa $\mathcal{A}_{LR(0)}$ che riconoscono questa stringa, e questi percorsi terminano proprio nell'item $[ N_n \rightarrow \beta_1 . \beta_2 ]$.
+
+	Consideriamo un item $[ A \rightarrow \beta_1 . \beta_2 ]$ valido per $\alpha \beta_1$: allora deve esistere una derivazione canonica destra
+	\[
+	S' \Rightarrow_{rm}^* \alpha A w \xRightarrow{A \rightarrow \beta}_{rm} \alpha \beta w
+	\]
+	Ma come visto nella dimostrazione del lemma \ref{th:carat-pref-attuabili-compl} questa genera una scomposizione di $\gamma$ in quella forma, quindi per ogni item valido esiste un percorso in $\mathcal{A}_{LR(0)}$ che termina in quell'item.
+	
+	Viceversa, si consideri una scomposizione in quella forma di $\gamma$. Sempre dalla dimostrazione del lemma \ref{th:carat-pref-attuabili-compl} si ottiene che a questa scomposizione sono associate alcune derivazioni canoniche destre di $\alpha \beta w$, e che tutte queste hanno l'ultimo passo di derivazione guidato dalla produzione $N_{i_{m+1}} \rightarrow \beta_{i_{m+1}}$ nella notazione del lemma. Ricordando però che $i_{m+1} = n$ e che, nella notazione di questo teorema, $N_n = A$ e $\beta_n = \beta = \beta_1 \beta_2$ si ha che l'ultima produzione è proprio quella voluta, e quindi per ogni scomposizione in quella forma si ottiene un item valido.
+\end{proof}
+
+Le transizioni del parser LR vengono descritte di seguito. Con $\Gamma$ indichiamo il resto della pila, non interessante per la transizione corrente, mentre con le lettere $X$ indichiamo un carattere in $N \cup \Lambda$.
+\begin{itemize}
+	\item $(\Gamma (X, p), a w) \Rightarrow ( \Gamma (X, p) (a, q), w)$ se $T[a, p] = \textit{shift }q$. Questa transizione ``sposta" il carattere corrente dalla stringa alla pila (da cui \textit{shift}), e passa nello stato $q$.
+	\item $(\Gamma (X, p) (X_1, p_1) \dots (X_n, p_n), a w) \Rightarrow ( \Gamma (X, p) (A, q), a w)$ se $T[a, p_n] = \textit{reduce }A \rightarrow X_1 \dots X_n$ e $T[A, p] = \textit{goto }q$. Questa transizione ``applica al contrario" la produzione $A \rightarrow X_1 \dots X_n$ e si sposta nello stato $q$, che dipende solo dal non terminale della produzione e dallo stato che l'automa aveva prima di iniziare a leggere i caratteri della produzione (che era memorizzato nella pila).
+	\item $(\Gamma (X, p), \#) \Rightarrow \text{accetta la stringa}$ se $T[\#, p] = \textit{accept}$.
+	\item $(\Gamma (X, p), a w) \Rightarrow \text{errore}$ se $T[a, p] = \textit{error}$.
+\end{itemize}
+
+Ora che sappiamo come si comporta l'automa $\mathcal{A}_{LR(0)}$ possiamo studiare finalmente il parser LR. Ricordiamo come si definisce la tabella di parsing a partire dall'automa:
+\begin{itemize}
+	\item Gli elementi di $T[A, q]$ con $A \in N$ vengono ``copiati" dall'automa, nel senso che se questo aveva la transizione $t(q, A) = q'$ si imposta $T[A, q] = \textit{goto } q'$.
+	\item Gli elementi $T[a, q]$ con $a \in \Lambda$ vengono ``copiati" dall'automa come \textit{shift}, nel senso che se questo aveva la transizione $t(q, a) = q'$ si imposta $T[a, q] = \textit{shift } q'$.
+	\item Se uno stato $q$ contiene l'item $[ A \rightarrow \alpha . ]$ si imposta $T[a, q] = \textit{reduce } A \rightarrow \alpha$ per tutti gli $a \in \Lambda$.
+	\item Si impostano gli elementi $T[\#, q] = \textit{accept}$ per tutti gli stati $q$ che contengono l'item $[ S' \rightarrow S. \# ]$.
+	\item Tutti gli elementi ancora vuoti della tabella di parsing si impostano ad errore.
+\end{itemize}
+
+Vorremmo capire come si comporta il parser LR mentre esamina una stringa in ingresso. Come notazione diremo che, se $\Gamma (X, q)$ è la pila del parser LR, lo \textit{stato del parser} è $q$, ovvero lo stato dell'elemento più alto della pila. Inoltre con la stringa \textit{contenuta} dalla pila indicheremo la stringa formata dai caratteri degli elementi della pila, letti a partire dal fondo.
+
+Sia $s$ una stringa del linguaggio, che ha quindi una derivazione canonica destra
+\[
+S' \Rightarrow_{rg} \gamma_1 \Rightarrow_{rg} \dots \Rightarrow_{rg} \gamma_n = s
+\]
+Detto $l = \abs{s}$ e dato un indice $k < l$ posso considerare la prima stringa della derivazione per cui $s[l - k:]$ è un suo suffisso. Allora tutte le stringhe dopo di questa hanno $s[l - k:]$ come suffisso perché questa è una stringa di soli terminali. Sia $\gamma_{i_k}$ tale stringa della derivazione.
+Deve valere che $i_k \ge i_{k+1}$ perché la derivazione è canonica destra, quindi per avere più nonterminali a destra devo prendere una stringa che appare dopo nella derivazione. Inoltre è chiaro che $i_0 = n$ e $i_l = 0$ visto che corrispondo rispettivamente ai suffissi $s$ ed $\epsilon$.
+
+L'idea di queste stringhe dovrebbe essere chiarita dal seguente teorema, che le caratterizza come le stringhe che si trovano nella pila del parser.
+
+\begin{lemma}\label{th:parser-viable-prefix}
+	Sia $s$ una stringa del linguaggio. Durante il parsing di $s$, dopo aver letto i primi $k$ caratteri della stringa, la pila del parser LR contiene il prefisso $\gamma_{i_k}[:\abs{\gamma_{i_k}} - l + k]$ e il parser è nello stato raggiunto da $\mathcal{A}_{LR(0)}$ leggendo quel prefisso.
+\end{lemma}
+\begin{proof}
+	La dimostrazione è per induzione estesa su $k$.
+	\todo{Però è molto cancrosa, quindi non ho voglia di farla}
+	Il passo base $k = 0$ è vero perché, prima di leggere qualsiasi carattere, la pila inizialmente contiene solo $(\epsilon, q_0)$, e vale $\epsilon = \gamma_{i_0}[:\abs{\gamma_{i_0}} - l + 0)] = s[:l - l + 0] = s[:0]$ e leggendolo $\mathcal{A}_{LR(0)}$ arriva esattamente nello stato iniziale, che è $q_0$.
+	
+	Suppongo quindi che, dopo aver letto i primi $k$ caratteri, la pila contenga $\gamma_{i_k}[:\abs{\gamma_{i_k}} - l + k]$. Possiamo subito osservare che il parser non può cambiare stato tramite una \textit{reduce} senza leggere il carattere $k$.
+	Il parser poi legge il carattere all'indice $k$. 
+\end{proof}
+
+\subsection{Aspetti contestuali}
+I linguaggi di programmazione contengono necessariamente anche aspetti contestuali. La scelta di utilizzare una grammatica libera è motivata dall'efficienza, ma è necessario introdurre meccanismi per verificare anche gli aspetti contestuali dopo il parsing, e questo viene svolto dal terzo componente del front-end del compilatore, chiamato a volte analizzatore contestuale o (impropriamente) semantico.
+
+Purtroppo questi aspetti spesso sono verificati con metodi ad-hoc, ma c'è almeno uno strumento teorico che ha trovato un vasto impiego nella pratica, i \textit{sistemi di tipi} (o \textit{type system}). Nonostante tutta questa bella storiella parleremo dei sistemi di tipo nella prossima sezione, dato che si appoggiano agli stessi strumenti formali su cui si basano le altre analisi statiche.
+
+\newpage
+\section{Analisi statiche}
+Motivazioni blablabla devi capire com'è fatto il programma per ottimizzarlo.
+
+Tutta una famiglia di analisi statiche si basa su insiemi parzialmente ordinati, punti fissi e altri concetti matematici, che preferiamo introdurre individualmente nelle prossime sezioni.
+
+\subsection{Insiemi parzialmente ordinati}
+\subsubsection{Insiemi}
+\begin{definition}[Ordinamento parziale]
+	Dato un insieme $S$, un ordinamento parziale $\preceq$ su $S$ è una relazione binaria su $S$ che sia \begin{itemize}
+		\item \textit{riflessiva}: $a \preceq a$ per ogni $a \in S$.
+		\item \textit{antisimmetrica}: se $a \preceq b$ e $b \preceq a$ allora $a = b$.
+		\item \textit{transitiva}: se $a \preceq b$ e $b \preceq c$ allora $a \preceq c$.
+	\end{itemize}	
+	Chiameremo la coppia $(S, \preceq)$ un insieme parzialmente ordinato.
+\end{definition}
+
+Se dati due elementi $a$ e $b$ non vale né $a \preceq b$ né $b \preceq a$ diremo che non sono confrontabili.
+Inoltre quando diremo che un elemento è minore o maggiore di tutti gli elementi $a$ di un certo insieme $P$ intenderemo implicitamente che è anche confrontabile con tutti gli elementi di quell'insieme, e lo indicheremo con $P \preceq a$ o $a \preceq P$.
+
+Useremo anche la notazione $a \prec b$ per indicare $a \preceq b$ e $a \neq b$.
+
+\begin{example}[Power poset]
+	Dato un insieme $A$ la coppia $(\mathcal{P}(A), \subseteq)$ (dove con $\mathcal{P}(A)$ si indica l'insieme delle parti di $A$, ovvero l'insieme di tutti i suoi sottoinsiemi) è un insieme parzialmente ordinato.
+	
+	Questo insieme si chiama anche \textit{power poset} perché in inglese $\mathcal{P}(A)$ si chiama power set di $A$, mentre un insieme parzialmente ordinato si chiama poset.
+	
+	Come vedremo questo esempio ha molte proprietà in più di un generico insieme parzialmente ordinato, e i power poset risulteranno molto interessanti nelle nostre applicazioni.
+\end{example}
+
+D'ora in poi, a meno che non ci sia ambiguità, indicheremo un insieme parzialmente ordinato solo con l'insieme $S$ degli elementi, sottintendendo la relazione d'ordine $\preceq$.
+\begin{definition}[Maggioranti e minoranti]
+	Sia $S$ un insieme parzialmente ordinato, e sia $P \subseteq S$.
+	
+	Un elemento $a \in S$ si chiama maggiorante di $P$ se $P \preceq a$, ovvero se per ogni $x \in P$ vale $x \preceq a$. Un maggiorante di $P$ che appartenga a $P$ si chiama \textit{massimo}. Il minimo dei maggioranti, se esiste, si chiama \textit{estremo superiore}, indicato con $\sup(P)$.
+	
+	Similmente un elemento $a \in S$ si chiama minorante di $P$ se $a \preceq P$, ovvero per ogni $x \in P$ vale $a \preceq x$. Un minorante di $P$ che appartenga a $P$ si chiama \textit{minimo}. Il massimo dei minoranti, se esiste, si chiama \textit{estremo inferiore}, indicato con $\inf(P)$.
+\end{definition}
+
+Notare che in generale un insieme può non avere maggioranti e/o minoranti: basti pensare ad un insieme di due elementi non confrontabili.
+
+Un insieme può anche avere maggioranti o minoranti e non avere comunque estremo superiore ed inferiore: si pensi all'insieme parzialmente ordinato rappresentato in figura \ref{fig:poset-maj-no-sup} e al sottoinsieme formato dai due elementi in basso in figura: questo ha maggioranti (entrambi gli elementi in alto) ma non ha estremo superiore.
+
+\begin{figure*}
+	\centering
+	\begin{tikzpicture}
+	\tikzset{vertex/.style = {shape=circle,fill,inner sep=2pt}}
+	\tikzset{edge/.style = {->,> = latex'}}
+	% vertices
+	\node[vertex] (a) at  (0,0) {};
+	\node[vertex] (b) at  (2,0) {};
+	\node[vertex] (c) at  (0,2) {};
+	\node[vertex] (d) at  (2,2) {};
+	%edges
+	\draw[edge] (c) to (a);
+	\draw[edge] (d) to (a);
+	\draw[edge] (c) to (b);
+	\draw[edge] (d) to (b);
+	\end{tikzpicture}
+	\caption{Poset con maggioranti ma senza $\sup$}
+	\label{fig:poset-maj-no-sup}
+\end{figure*}
+
+\begin{example}[Power poset]
+	Sia $A$ un insieme, e sia $\mathcal{P}(A)$ il suo insieme delle parti. Allora un sottoinsieme $P \subseteq \mathcal{P}(A)$ ammettere estremo inferiore ed estremo superiore:
+	\begin{align*}
+	\inf(P) &= \bigcap P \coloneqq \bigcap\limits_{B \in P} B\\
+	\sup(P) &= \bigcup P \coloneqq \bigcup\limits_{B \in P} B
+	\end{align*}
+\end{example}
+
+\begin{example}[Insieme vuoto]
+	Dato un insieme parzialmente ordinato $S$ si può considerare $\emptyset \subseteq S$. Dalla definizione si ottiene che l'insieme dei maggioranti dell'insieme vuoto è tutto $S$, così come l'insieme dei minoranti. Segue quindi che $\sup(\emptyset) = \min(S)$ e $\inf(\emptyset) = \max(S)$, ammesso che esistano.
+	
+	L'insieme vuoto è anche l'unico sottoinsieme di $S$ per cui, se esistono entrambi, $\sup(\emptyset) \preceq \inf(\emptyset)$; per qualsiasi altro sottoinsieme $P$ vale sempre $\inf(P) \preceq  \sup(P)$
+\end{example}
+
+Vediamo un semplice lemma su massimi/minimi ed estremi superiori/inferiori.
+
+\begin{prop}
+	Se $P$ ha un massimo questo è unico ed è anche l'estremo superiore.
+	
+	Similmente, se ha minimo questo è unico ed è l'estremo inferiore.
+\end{prop}
+\begin{proof}
+	Siano $x, y$ due massimi di $P$. Dato che $x$ è un maggiorante di $P$ deve valere $y \preceq x$ (poiché $y \in P$ in quanto massimo) e, viceversa, dato che $y$ è un maggiorante di $P$ deve valere $x \preceq y$. Dalla proprietà antisimmetrica di $\preceq$ si ha che $x = y$, quindi il massimo è unico.
+	
+	Sia ora $x$ il massimo di $P$, e sia $m$ un maggiorante di $P$. Dato che $x$ è un elemento di $P$ deve valere $x \preceq m$, quindi dall'arbitrarietà di $m$ segue che $x$ è minore di tutti i maggioranti di $P$, ovvero è il minimo dei maggioranti, quindi l'estremo superiore.
+	
+	Le dimostrazioni per minimo ed estremo inferiore sono analoghe.
+\end{proof}
+
+\begin{example}
+	Sia $S$ un insieme parzialmente ordinato, $x \in S$ e sia $P = \{ y \in S \svert y \preceq x \}$. $x$ è un maggiorante di $P$ per definizione, ed appartiene a $P$, quindi è il suo massimo. Ne segue che sia l'unico, e che sia anche l'estremo superiore di $P$. Similmente se $P = \{ y \in S \svert x \preceq y \}$ si ha $x = \min(P)$ e quindi $x = \inf(P)$.
+\end{example}
+
+In generale siamo interessati ad avere $\inf$ e $\sup$, quindi studiamo solo alcuni insiemi parzialmente ordinati.
+
+\begin{definition}[Reticolo]
+	Un insieme parzialmente ordinato S si dice \textit{semireticolo superiore} se per ogni coppia $x, y$ di elementi di $S$ esiste $\sup\{x, y\}$. Analogamente si dice \textit{semireticolo inferiore} se esiste $\inf\{x, y\}$ per ogni coppia di elementi.
+	
+	Un insieme si dice \textit{reticolo} se è un semireticolo sia inferiore che superiore.
+	
+	Se l'estremo superiore esiste per ogni sottoinsieme (inclusi il sottoinsieme vuoto ed $S$) si dice che questo è un \textit{semireticolo completo superiore}. Analogamente se esistono sempre gli estremi inferiori si chiama \textit{semireticolo completo inferiore}.
+	
+	Un semireticolo completo inferiore e superiore si chiama \textit{reticolo completo}.
+\end{definition}
+
+\begin{remark}
+	Un semireticolo completo non può essere vuoto, dato che deve contenere estremo inferiore o superiore per l'insieme vuoto. Inoltre questi coincidono con minimo e massimo di tutto il semireticolo, che devono quindi esistere.
+\end{remark}
+
+\begin{remark}\label{oss:finite-lattice-complete}
+	Se $L$ è un semireticolo (inferiore o superiore) e $P \subseteq L$ è un insieme finito, allora (per induzione sulla sua cardinalità) $P$ ammette estremo superiore o inferiore. Da questo segue anche che se $L$ è un semireticolo finito non vuoto allora è un semireticolo completo.
+\end{remark}
+
+\begin{example}[Power poset]
+	Come abbiamo visto ogni sottoinsieme di $\mathcal{P}(A)$ ammette $\inf$ e $\sup$, quindi $\mathcal{P}(A)$ è un reticolo completo.
+\end{example}
+
+\begin{example}[Intervallo]\label{ex:intervallo}
+	Sia $L$ un reticolo completo, e siano $l, u \in L$ due elementi di $L$. Allora l'insieme $I = \{ x \in L \svert l \preceq x \preceq u \}$ è un reticolo completo, e si chiama intervallo di estremi $l$ ed $u$. A volte indicheremo un intervallo di estremi $l$ ed $u$ con $[ l, u ]$.
+	
+	In questo esempio indicherò con un pedice l'insieme rispetto a cui calcolo estremo superiore inferiore, ovvero
+	\[
+	\sup{}_A(P) = min \{ x \in A \svert P \preceq x \}
+	\]
+	e analogamente per l'$\inf$.
+	
+	$\emptyset \subseteq I$ ha estremo inferiore e superiore in $I$ perché $I$ ha massimo $u$ e minimo $l$.
+	
+	Preso $P \subseteq I$ non vuoto questo deve avere un estremo inferiore e superiore in $L$ perché $L$ è un reticolo completo.
+	Dalla definizione di $I$ si ottiene $l \preceq P$, quindi $l$ è un minorante di $P$. Dalla definizione di estremo inferiore si ottiene quindi $l \preceq \inf{}_L(P)$. Similmente, dato che $P \preceq u$ si ottiene $\sup{}_L(P) \preceq u$.
+	Dato che $P$ non è vuoto si ha anche $\inf{}_L(P) \preceq \sup{}_L(P)$, quindi per transitività
+	\[
+	l \preceq \inf{}_L(P) \preceq \sup{}_L(P) \preceq u
+	\]
+	ovvero $\inf{}_L(P), \sup{}_L(P) \in I$.
+
+	Dimostro ora che questi sono anche gli estremi di $P$ rispetto a $I$: considero un maggiorante $m \in I$ di $P$. Allora $m \in L$ e perciò deve essere $\sup_L(P) \preceq m$. Ma quindi $\sup_L(P)$ è anche il minimo dei maggioranti di $P$ in $I$, ovvero $\sup_L(P) = \sup_I(P)$. Analogamente si dimostra che $\inf_L(P) = \inf_I(P)$.
+\end{example}
+
+Vediamo ora che le nozioni di semireticolo completo coincidono con quella di reticolo completo a livello di oggetti. Come vedremo differiscono però a livello di morifismi.
+
+\begin{prop}\label{th:complete-semilattice-to-complete-lattice}
+	Sia $L$ un semireticolo completo inferiore. Allora $L$ è un reticolo completo.
+	
+	Analogamente se $L$ è un semireticolo completo superiore è un reticolo completo.
+\end{prop}
+\begin{proof}
+	Sia $P \subseteq L$ un sottoinsieme di $L$. Per ipotesi esiste $\sup(P)$, quindi basta dimostrare che esiste $\inf(P)$ per ottenere che $L$ è un reticolo completo.
+	
+	Considero l'insieme $M$ di tutti i minoranti di $P$. Per ipotesi esiste $m = \sup(M)$, e per definizione di minoranti ogni elemento $x \in P$ è un maggiorante di $M$. Dalla definizione di estremo superiore si ha quindi che $m \preceq x$ perché è il minimo dei maggioranti, e quindi anche $m$ è un minorante di $P$. Da questo segue che $m \in M$ e $m = \sup(M)$, quindi $m = \max(M)$ e perciò è il massimo dei minoranti, ovvero l'estremo inferiore, di $X$.
+	
+	La dimostrazione nel caso di semireticolo inferiore è analoga.
+\end{proof}
+
+\subsubsection{Morfismi}
+Definiamo ora i morfismi tra alcune delle strutture che abbiamo introdotto.
+
+\begin{definition}[Funzione monotona]
+	Siano $S_1$, $S_2$ due insiemi parzialmente ordinati, e $\varphi : S_1 \rightarrow S_2$ una funzione tra i due.
+	
+	Si dice che $\varphi$ è un omomorfismo di insiemi parzialmente ordinati, o una funzione \textit{monotona}, se comunque presi $a, b \in S_1$ tali che $a \preceq b$ vale $\varphi(a) \preceq \varphi(b)$.
+\end{definition}
+
+Come vedremo la monotonia sarà una proprietà che chiederemo quasi sempre alle funzioni che studieremo, perché vorremo che preservino la struttura base dei nostri oggetti.
+
+Diventano molto più interessanti le definizioni di morfismi quando ci spostiamo su oggetti più complessi, come i reticoli.
+
+\begin{definition}
+	Dati due semireticoli inferiori $L_1, L_2$, una mappa $\varphi: L_1 \rightarrow L_2$ si dice omomorfismo di semireticoli inferiori se è monotona e preserva le operazioni di $\inf$ sulle coppie, ovvero se per ogni coppia di elementi $a, b \in L_1$ vale
+	\[
+		\varphi(\inf \{ a, b \}) = \inf \{ \varphi(a), \varphi(b) \}
+	\]
+	Similmente si definiscono gli omomorfismi di semireticoli superiori come funzioni che preservano i $\sup$ delle coppie.
+	
+	Se $L_1, L_2$ sono reticoli e $\varphi: L_1 \rightarrow L_2$ è un omomorfismo di semireticoli sia inferiori che superiori, si chiama omomorfismo di reticoli.
+	
+	Le definizioni per semireticoli completi sono analoghe, richiedendo che $\varphi$ preservi gli estremi (superiori, inferiori o entrambi) di insiemi arbitrari.
+\end{definition}
+
+\begin{prop}\label{th:sup-coppie-monotona}
+	Una funzione che preserva estremi superiori (o inferiori) delle coppie è un omomorfismo di semireticoli.
+\end{prop}
+\begin{proof}
+	Siano $L_1, L_2$ due semireticoli superiori, e sia $\varphi : L_1 \rightarrow L_2$ una mappa che preserva  gli estremi superiori delle coppie. Per dimostrare che è un omomorfismo di semireticoli superiori basta quindi mostrare che è monotona.
+	Siano $a, b \in L_1$ tali che $a \preceq b$. Allora $a = \inf \{ a, b \}$, quindi $\varphi(a) = \varphi(\inf \{ a, b \}) = \inf \{ \varphi(a), \varphi(b) \}$. Dalla definizione di $\inf$ segue che $\varphi(a) \preceq \varphi(b)$.
+	
+	La dimostrazione nel caso di semireticoli superiori è analoga.
+\end{proof}
+
+La definizione nel caso dei semireticoli completi è interessante: come abbiamo visto un semireticolo completo inferiore o superiore è anche un reticolo completo (proposizione \ref{th:complete-semilattice-to-complete-lattice}), ma le definizioni di morfismi sono diverse perché preservano solo la struttura di cui parliamo.
+
+In generale un omomorfismo di semireticoli completi (inferiori o superiori) non è un omomorfismo di reticoli completi:
+\begin{example}\label{ex:complete-sempilattice-morph-not-complete-lattice}
+	Sia $\setN \cup \{ +\infty \}$ con la relazione d'ordine $\le$, considerando $+ \infty$ maggiore di tutti gli altri numeri, un semireticolo completo inferiore. Considero poi il semireticolo completo inferiore $\{ \bot, \top \}$ contenente solo due elementi confrontabili, e la mappa $\varphi: \setN \cup \{ + \infty \} \rightarrow \{ \bot, \top \}$ definita come
+	\begin{align*}
+		\varphi(+ \infty) &= \top \\
+		\varphi(n) &= \bot \qquad \forall n \in \setN
+	\end{align*}
+	
+	Questo è un omomorfismo di semireticoli inferiori completi (preserva $\inf$ di insiemi arbitrari) ma non preserva tutti i $\sup$:
+	\[
+	\varphi(\sup(\setN)) = \varphi(+ \infty) = \top \neq \bot = \sup\{ \bot \} = \sup(\varphi(\setN))
+	\]
+\end{example}
+
+Seguono le definizioni ovvie di isomorfismi.
+\begin{definition}[Isomorfismi]
+	Un omomorfismo tra due oggetti (insiemi parzialmente ordinati, semireticoli, reticoli, semireticoli completi, reticoli completi) che sia anche una funzione invertibile e tale che la sua inversa sia un omomorfismo tra i due oggetti si chiama isomorfismo. Se esiste un isomorfismo tra due oggetti questi si dicono isomorfi.
+\end{definition} 
+
+In generale non basta verificare che un omomorfismo sia invertibile per ottenere un isomorfismo.
+\begin{example}
+	\begin{figure*}
+		\centering
+		\begin{tikzpicture}
+		\tikzset{vertex/.style = {shape=circle,fill,inner sep=2pt}}
+		\tikzset{edge/.style = {->,> = latex'}}
+		% vertices 1
+		\node[vertex] (a1) at  (4,0) {};
+		\node[vertex] (b1) at  (4,1) {};
+		\node[vertex] (c1) at  (4,2) {};
+		\node[vertex] (d1) at  (4,3) {};
+		%edges 1
+		\draw[-] (d1) to (c1) to (b1) to (a1);
+		% vertices 2
+		\node[vertex] (a) at  (0,0) {};
+		\node[vertex] (b) at  (-1,1.5) {};
+		\node[vertex] (c) at  (1,1.5) {};
+		\node[vertex] (d) at  (0,3) {};
+		%edges 2
+		\draw[-] (d) to (b) to (a);
+		\draw[-] (d) to (c) to (a);
+		%varphi
+		\draw[edge] (a) to node[below]{$\varphi$} (a1);
+		\draw[edge] (b) to node[below]{$\varphi$} (b1);
+		\draw[edge] (c) to node[above]{$\varphi$} (c1);
+		\draw[edge] (d) to node[above]{$\varphi$} (d1);
+		\end{tikzpicture}
+		\caption{Funzione monotona invertibile che non è un isomorfismo}
+		\label{fig:monotone-invertible-non-iso}
+	\end{figure*}
+	
+	La funzione $\varphi$ indicata in figura \ref{fig:monotone-invertible-non-iso} è invertibile e monotona, ma la sua inversa non lo è.
+\end{example}
+
+Vediamo ora che gli isomorfismi tra insiemi parzialmente ordinati preservano anche estremi superiori ed inferiori, quindi si promuovono automaticamente ad isomorfismi tra oggetti con più struttura (semireticoli, reticoli, etc...)
+\begin{prop}
+	Siano $S$, $T$ due insiemi parzialmente ordinati, e sia $\varphi : S \rightarrow T$ un isomorfismo di insiemi parzialmente ordinati.
+	Allora, per ogni sottoinsieme $P \subseteq S$, se esiste $\sup(P)$ esiste anche $\sup(\varphi(P))$ vale $\sup(\varphi(P)) = \varphi(\sup(P))$. Similmente, se esiste $\inf(P)$ esiste anche $\inf(\varphi(P))$ vale $\inf(\varphi(P)) = \varphi(\inf(P))$.
+\end{prop}
+\begin{proof}
+	Sia $P \subseteq S$ e suppongo esista $\sup(P)$. Per definizione di $\sup(P)$ vale $P \preceq \sup(P)$. Per la monotonia di $\varphi$ segue
+	\[
+	\varphi(P) \preceq \varphi(\sup(P))
+	\]
+	quindi $\varphi(\sup(P))$ è un maggiorante di $\varphi(P)$.
+	Considero ora un maggiorante di $\varphi(P)$, ovvero un $t \in T$ tale che $\varphi(P) \preceq t$. Dato che $\varphi$ è invertibile e la sua inversa è monotona, da questa relazione ottengo che $P \preceq \varphi^{-1}(t)$, quindi anche $\sup(P) \preceq \varphi^{-1}(t)$. Applicando $\varphi$ a questa relazione (dato che è monotona) si ottiene
+	\[
+	\varphi(\sup(P)) \preceq t
+	\]
+	Dall'arbitrarietà di $t$ segue che $\varphi(\sup(P))$ è il minimo dei maggioranti di $\varphi(P)$, ovvero $\sup(\varphi(P))$.
+	
+	La dimostrazione nel caso dell'estremo inferiore è analoga.
+\end{proof}
+
+\begin{corollary}
+	Siano $S, T$ due insiemi parzialmente ordinati e $\varphi : S \rightarrow T$ un isomorfismo di insiemi parzialmente ordinati. Allora\begin{itemize}
+		\item Se $S$ o $T$ è un semireticolo (inferiore o superiore) allora anche l'altro è un semireticolo (inferiore o superiore) e $\varphi$ è un isomorfismo di semireticoli (inferiori o superiori).
+		\item Se $S$ o $T$ è un reticolo allora anche l'altro lo è e $\varphi$ è un isomorfismo di reticoli.
+		\item Se $S$ o $T$ è un reticolo completo allora anche l'altro lo è e $\varphi$ è un isomorfismo di reticoli completi.
+	\end{itemize}
+\end{corollary}
+
+Notare come in questo corollario non vengano nominati i semireticoli completi. Il motivo è che i semireticoli completi sono anche reticoli completi, e automaticamente $\varphi$ è un isomorfismo di reticoli completi, senza quindi necessità di distinguere i semireticoli completi come nel caso degli omomorfismi.
+
+%Diamo ora una definizione interessante:
+%\begin{definition}
+%	Dati due reticoli completi $L_1, L_2$, una funzione $\varphi: L_1 \rightarrow L_2$ si dice \textit{quasi omomorfismo di semireticoli completi inferiori} se per ogni $P \subseteq L_1$ vale $\varphi(\sup(P)) = \varphi(\sup(\varphi(P)))$.
+%\end{definition}
+%
+%Questa definizione è una via di mezzo tra omomorfismo di reticoli completi e omomorfismi di semireticoli completi: si richiede che sia un omomorfismo di semireticoli completi inferiori, ma si impone anche una condizione sui $\sup$.
+
+\subsubsection{Catene}
+\begin{definition}[Catena]
+	Sia $S$ un insieme parzialmente ordinato. Un suo sottoinsieme $P \subseteq S$ si chiama \textit{catena} se è totalmente ordinato, ovvero se ogni coppia di elementi e confrontabile.
+	
+	%	Una catena si chiama \textit{massimale} se, per ogni elemento $x \in S \setminus P$ non nella catena, l'insieme $P \cup \{ x \}$ non è una catena.
+	
+	Una catena numerabile contenente un minimo (ovvero una successione di elementi non decrescenti) si chiama \textit{catena ascendente}. Viceversa, una catena numerabile contenente un massimo (ovvero una successione di elementi non crescenti) si chiama \textit{catena discendente}.
+\end{definition}
+
+Sia $L$ un reticolo completo, e sia $P \subseteq L$ una catena. Allora posso considerare l'insieme $P \cup \{ \inf(P) \}$: anche questo è una catena e l'elemento $\inf(P)$ è il suo minimo, quindi è una catena ascendente. Similmente aggiungendogli $\sup(P)$ si ottiene una catena discendente.
+
+\begin{definition}[Condizione delle catene ascendenti]
+	Si dice che un insieme parzialmente ordinato rispetta la \textit{condizione delle catene ascendenti} se ogni catena ascendente è definitivamente costante, ovvero esiste $n$ tale che tutti gli elementi della catena ascendente dall'$n$-esimo in poi sono uguali.
+\end{definition}
+
+%% Questa dimostrazione è più bella perché è costruttiva :c
+%\begin{prop}
+%	Sia $L$ un reticolo in cui ogni catena ascendente ammette estremo superiore. Allora ogni suo sottoinsieme non vuoto al più numerabile ammette estremo superiore.
+%\end{prop}
+%\begin{proof}
+%	Considero un sottoinsieme $P \subseteq L$. Se è un insieme finito ha $\sup$ come visto nell'osservazione \ref{oss:finite-lattice-complete}. Suppongo quindi che $P$ sia numerabile, e sia allora $e : \setN \rightarrow P$ una enumerazione di $P$, ovvero una biezione tra $\setN$ e $P$. Definisco per ricorsione la seguente successione di elementi di $L$:
+%	\begin{align*}
+%		x_0 &= e(0) \\
+%		x_{n+1} &= \sup\{ x_n, e(n) \}
+%	\end{align*}
+%	Dato $x_n$ l'esistenza di $x_{n+1}$ è garantita dal fatto che $L$ sia un reticolo, e quindi che esista il $\sup$ delle coppie. Inoltre dalla definizione di $\sup$ vale che $x_n \preceq x_{n+1}$, quindi l'insieme $C = \{ x_n \}$ è una catena, e perciò per la condizione delle catene ascendenti esiste $m = \sup(C)$.
+%
+%	$m$ è un maggiorante di $P$: preso $y$ in $P$ deve esistere $n$ tale che $e(n) = y$. Per definizione di $\sup$ valgono $y = e(n) \preceq x_{n+1}$ e $x_{n+1} \preceq m$, da cui $y \preceq m$.
+%	Sia ora $w$ un maggiorante di $P$. Dimostro per induzione che $x_n \preceq w$. Il passo base è vero perché $x_0 = e(0) \in P$ e $w$ è un maggiorante. Il passo induttivo è vero perché $x_n, e(n) \preceq w$ (rispettivamente per ipotesi induttiva e perché $w$ è un maggiorante di $P$) e quindi $x_{n+1} = \sup \{ x_n, e(n) \} \preceq w$. Quindi $w$ è un maggiorante di $C$, e perciò $m \preceq w$.
+%	Da questo segue che $m$ è il minimo dei maggioranti di $P$, ovvero il suo estremo superiore.
+%\end{proof}
+\begin{prop}
+	Sia $S$ un insieme parzialmente ordinato che rispetta la condizione delle catene ascendenti. Allora ogni suo sottoinsieme non vuoto ammette estremo superiore.
+\end{prop}
+\begin{proof}
+	Considero un sottoinsieme non vuoto $P \subseteq S$ e suppongo per assurdo che non esista $\sup(P)$.
+	Questo vuol dire che non esiste neanche $\max(P)$ perché sarebbe anche il suo estremo superiore, quindi comunque preso $x \in P$ deve esistere $x' \in P$ tale che $x \prec x'$.
+	Definisco la seguente catena ascendente ricorsivamente: $x_0 \in P$ è un elemento arbitrario di $P$ (che esiste perché $P$ è non vuoto). Fissato $x_n \in P$ prendo $x_{n+1}$ come un elemento strettamente maggiore di $x_n$, ovvero $x_n \prec x_{n+1}$.
+	Quella così definita è una catena ascendente e non è definitivamente costante dato che ogni elemento è diverso dal precedente, ma tale catena non può esistere perché $S$ rispetta la condizione delle catene ascendenti, che è assurdo. Quindi deve esistere $\sup(P)$.
+\end{proof}
+
+\begin{corollary}
+	Sia $L$ un insieme parzialmente ordinato. Allora è un reticolo completo se e solo se rispetta la condizione delle catene ascendenti e ha minimo.
+\end{corollary}
+\begin{proof}
+	Se $L$ è un reticolo completo ha minimo ad ogni catena ascendente ammette estremo superiore in quanto sottoinsieme di $L$.
+	Viceversa se $L$ è un insieme parzialmente ordinato con minimo che rispetta la condizione delle catene ascendenti ogni suo sottoinsieme ammette estremo superiore: l'insieme vuoto ha come $\sup$ il minimo di $L$, ogni altro sottoinsieme ha $\sup$ per la proposizione precedente. Dalla proposizione \ref{th:complete-semilattice-to-complete-lattice} si conclude poi che $L$ è un reticolo completo.
+\end{proof}
+
+Analogamente si può definire la condizione delle catene discendenti e dimostrare che (insieme all'esistenza del massimo) è equivalente alla completezza, e quindi anche che le due condizioni sono equivalenti in presenza di massimo e minimo dell'insieme.
+
+\subsubsection{Operatori di chiusura}
+\begin{definition}[Operatore di chiusura]
+	Sia $S$ un insieme parzialmente ordinato. Un operatore $\rho : S \rightarrow S$ si dice di chiusura se è
+	\begin{itemize}
+		\item \textit{monotono}
+		\item \textit{estensivo}, ovvero per ogni $a$ vale $a \preceq \rho(a)$
+		\item \textit{idempotente}, ovvero $\rho \circ \rho = \rho$
+	\end{itemize}
+\end{definition}
+
+Una nozione legata a questa (che nasce più naturalmente durante l'analisi statica di programmi) è quella di
+\begin{definition}[Famiglia di Moore]
+	Sia $L$ un reticolo completo. Un sottoinsieme $\bar{A} \subseteq L$ si dice famiglia di Moore se contiene $\sup(L)$ e se dato un qualsiasi sottoinsieme di $\bar{A}$ il suo $\inf$ (in $L$) appartiene ad $\bar{A}$.
+\end{definition}
+
+Possiamo osservare subito che, per la proposizione \ref{th:complete-semilattice-to-complete-lattice}, una famiglia di Moore è un reticolo completo.
+
+\begin{definition}[Operatore di approssimazione]
+	Sia $L$ un reticolo completo, e sia $P \subseteq L$ un sottoinsieme. L'operatore $\rho_P : L \rightarrow L$ di approssimazione a $P$ si definisce come
+	\[
+	\rho_P(x) = \inf \{ a \in P \cup \{ \sup(L) \} \svert x \preceq a \}
+	\]
+\end{definition}
+
+Possiamo subito notare come $x \preceq \rho_P(x)$ per ogni $x$ per la definizione di $\inf$ e dal fatto che l'insieme di cui si calcola l'estremo inferiore non è mai vuoto (dato che contiene $\sup(L)$). Nel caso in cui $P$ sia una famiglia di Moore si verifica immediatamente che $\rho_P(x) \in P$. Vediamo ora l'equivalenza di queste due nozioni.
+
+\begin{prop}
+	Sia $L$ un reticolo completo. Allora:\begin{enumerate}
+		\item Se $\rho: L \rightarrow L$ è un operatore di chiusura allora l'immagine $\rho(L)$ è una famiglia di Moore.
+		\item Se $\bar{A}$ è una famiglia di Moore allora il suo operatore di approssimazione è anche di chiusura, ed è l'unico operatore di chiusura che ha $\bar{A}$ come immagine.
+	\end{enumerate}
+\end{prop}
+\begin{proof}
+	Sia $\rho$ un operatore di chiusura. Dato che $\rho$ è estensivo deve valere $\rho(\top) = \top$, quindi $\top \in \rho(L)$. Considero ora un sottoinsieme $P \subseteq \rho(A)$, e sia $w = \inf(P)$. Dato che $\rho$ è monotono vale $\rho(w) \preceq \rho(P)$. Per l'idempotenza di $\rho$ si ha anche che $\rho(P) = P$ dato che $P$ è un sottoinsieme dell'immagine di $\rho$, quindi $\rho(w)$ è un minorante di $P$. Dato che $w = \inf(P)$ vale $\rho(w) \preceq w$, ma dall'estensività di $\rho$ si ottiene $w \preceq \rho(w)$, quindi $w = \rho(w)$ e dunque $w \in \rho(L)$. Quindi $\rho(L)$ è una famiglia di Moore.
+	
+	Viceversa sia $\bar{A}$ una famiglia di Moore, e sia $\rho$ il suo operatore di approssimazione.
+	$\rho$ è monotona: dati $x \preceq y$ vale che $\{ a \in \bar{A} \svert x \preceq a \} \supseteq \{ a \in \bar{A} \svert y \preceq a \}$ e quindi $\inf \{ a \in \bar{A} \svert x \preceq a \} \preceq \inf \{ a \in \bar{A} \svert y \preceq a \}$.
+	$\rho$ è estensiva: $x$ è un minorante di $\{ a \in \bar{A} \svert x \preceq a \}$ (dato che questo insieme non è vuoto in quanto contiene sempre almeno $\top$), e quindi $x \preceq \inf \{ a \in \bar{A} \svert x \preceq a \} = \rho(x)$.
+	$rho$ è idempotente: dato $x \in \bar{A}$ vale $x \in \{ a \in \bar{A} \svert x \preceq a \}$, che è quindi sia un minorante che un elemento dell'insieme, e ne è quindi il minimo, perciò $\rho(x) = x$.
+
+	Sia ora $\sigma$ un generico operatore di chiusura tale che $\sigma(L) = \bar{A}$. Dall'idempotenza di $\sigma$ segue che $\left. \sigma \right|_{\bar{A}}$ è l'identità, e dalla monotonia di $\sigma$ segue che $\sigma(x) \preceq \inf \{ \sigma(a) \svert a \in \bar{A}, \, x \preceq a \} = \inf \{ a \in \bar{A} \svert x \preceq a \} )= \rho(x)$.
+	Inoltre per l'estensività di $\sigma$ vale $x \preceq \sigma(x)$, quindi $\sigma(x) \in \{ a \in \bar{A} \svert x \preceq a \}$, da cui $\rho(x) = \inf \{ a \in \bar{A} \svert x \preceq a \} \preceq \sigma(x)$.
+	Combinando queste due si ottiene $\sigma(x) = \rho(x)$, quindi $\sigma$ è in realtà l'operatore $\rho$.
+\end{proof}
+
+%\begin{prop}
+%	Valgono le seguenti proprietà:
+%	\begin{enumerate}
+%		\item $\rho$ è un quasi omomorfismo di semireticoli completi inferiori (ovvero se per ogni $P \subseteq L_1$ vale $\varphi(\sup(P)) = \varphi(\sup(\varphi(P)))$).
+%		\item $\bar{A}$ è un sottoreticolo completo se e solo se  $\rho$ è un omomorfismo di semireticoli completi inferiori.
+%		\item Dato un qualsiasi sottoinsieme $P \subseteq L$, l'immagine del suo operatore di approssimazione $\rho_P(L)$ è la minima famiglia di Moore in $L$ che contiene $P$.
+%	\end{enumerate}
+%\end{prop}
+%\begin{proof}
+%	\todo{}
+%	
+%	\begin{enumerate}
+%		\item 
+%	\end{enumerate}	
+%\end{proof}
+
+%\begin{prop}
+%	Sia $\varphi$ una funzione. Allora $\varphi$ è idempotente se e solo se $im(\varphi) = fix(\varphi)$, ovvero se l'insieme dei suoi punti fissi è la sua immagine.
+%\end{prop}
+%\begin{proof}
+%	$fix(\varphi) \subseteq im(\varphi)$ perché se $x \in fix(\varphi)$ allora $x = \varphi(x)$, quindi appartiene all'immagine.
+%	
+%	Suppongo $\varphi$ idempotente. Allora se $x \in im(\varphi)$ esiste $y$ tale che $x = \varphi(y)$. Applicando $\varphi$ ad entrambi i membri si ottiene $\varphi(x) = \varphi(\varphi(y))$, ma dall'idempotenza di $\varphi$ si ottiene $\varphi(\varphi(y)) = \varphi(y) = x$, quindi $x = \varphi(x)$.
+%	
+%	Viceversa se $\varphi$ è tale che $im(\varphi) = fix(\varphi)$ deve valere che $\varphi(\varphi(x)) = \varphi(x)$ dato che $\varphi(x) \in im(\varphi)$ e quindi è un punto fisso di $\varphi$.
+%\end{proof}
+
+\subsubsection{Connessioni di Galois}
+\begin{definition}[Connessione di Galois]
+	Siano $S$, $T$ due insiemi parzialmente ordinati. Una connessione di Galois tra questi due insiemi è una coppia di funzioni monotone $\alpha : S \rightarrow T$, $\gamma : T \rightarrow S$ tali che, comunque presi $s \in S$ e $t \in T$, valga
+	\[
+		\alpha(s) \preceq t \iff s \preceq \gamma(t)
+	\]
+	
+	$\alpha$ si chiama \textit{aggiunta inferiore}, mentre $\gamma$ si chiama \textit{aggiunta superiore}.
+\end{definition}
+
+Trucco mnemonico: l'aggiunta inferiore ``sta sotto" nel $\preceq$. Per una connessione di Galois tra $S$ e $T$ (in questo ordine) useremo sia la notazione $(\alpha, \gamma)$, dove intendo che $\alpha$ è l'aggiunta inferiore da $S$ a $T$ e $\gamma$ quella superiore da $T$ ad $S$, se sono chiari i due insiemi di cui si parla, o $S (\alpha, \gamma) T$ per evidenziare anche i due insiemi.
+
+Per prima cosa introduciamo un modo equivalente di definire le connessioni di Galois
+\begin{prop}\label{th:galois-conn-extensive}
+	Siano $S$, $T$ due insiemi parzialmente ordinati, e siano $\alpha: S \rightarrow T$, $\gamma: T \rightarrow S$ due funzioni.
+	Allora $(\alpha, \gamma)$ è una connessione di Galois se e solo se $\alpha$ e $\gamma$ sono monotone, $\gamma \circ \alpha$ è estensiva e $\alpha \circ \gamma$ è intensiva (ovvero per ogni $t \in T$ vale $\alpha(\gamma(t)) \preceq t$).
+\end{prop}
+\begin{proof}
+	Suppongo che $(\alpha, \gamma)$ sia una connessione di Galois.
+	Preso $s \in S$ si ha $\alpha(s) \preceq \alpha(s)$, da cui utilizzando che $(\alpha, \gamma)$ è una connessione di Galois si ottiene $s \preceq \gamma(\alpha(s))$, quindi $\gamma \circ \alpha$ è estensiva.
+	Analogamente, preso $t \in T$ si ha $\gamma(t) \preceq \gamma(t)$, da cui si ottiene $\alpha(\gamma(t)) \preceq t$, ovvero $\alpha \circ \gamma$ è intensiva.
+	
+	Viceversa, suppongo che $\alpha \circ \gamma$ sia intensiva, $\gamma \circ \alpha$ estensiva e che le due funzioni siano monotone. Siano allora $s \in S$, $t \in T$.
+	Se $\alpha(s) \preceq t$, dalla monotonia di $\gamma$ si ottiene $\gamma(\alpha(s)) \preceq \gamma(t)$. Applicando ora l'estensività di $\gamma \circ \alpha$ si trova $s \preceq \gamma(\alpha(s)) \preceq \gamma(t)$.
+	Se invece $s \preceq \gamma(t)$, dalla monotonia di $\alpha$ si ottiene $\alpha(s) \preceq \alpha(\gamma(t))$, da cui segue per l'intensività di $\alpha \circ \gamma$ che $\alpha(s) \preceq t$.
+	Quindi $(\alpha, \gamma)$ è una connessione di Galois.
+\end{proof}
+
+Vediamo un'ulteriore proprietà delle connessioni di Galois che garantirà un'ipotesi che intuitivamente vorremo chiedere all'interpretazione astratta.
+\begin{prop}\label{th:galois-conn-best-approx}
+	Sia $S (\alpha, \gamma) T$ una connessione di Galois.
+	Allora
+	\begin{align*}
+	\alpha(s) &= \min \{ t \in T \svert s \preceq \gamma(t) \} \\
+	\gamma(t) &= \max \{ s \in S \svert \alpha(s) \preceq t \}
+	\end{align*}
+\end{prop}
+\begin{proof}
+	Sia $s \in S$. Allora $t \in T$ è tale che $s \preceq \gamma(t)$ se e solo se $\alpha(s) \preceq t$ dato che $(\alpha, \gamma)$ è una connessione di Galois, quindi
+	\[
+	\{ t \in T \svert s \preceq \gamma(t) \} = \{ t \in T \svert \alpha(s) \preceq t \}
+	\]
+	L'insieme $\{ t \in T \svert \alpha(s) \preceq t \}$ ha minimo $\alpha(s)$, quindi
+	\[
+	\alpha(s) = \min \{ t \in T \svert s \preceq \gamma(t) \}
+	\]
+	
+	Il caso di $\gamma(t)$ è analogo.
+\end{proof}
+
+Questo teorema afferma che $\alpha(s)$ (che come vedremo sarà l'astrazione di $s$) può essere interpretato come l'elemento astratto tale che la sua concretizzazione approssimi correttamente $s$ e tale che sia minimo, ovvero che produca il minimo errore di approssimazione possibile.
+
+Vediamo ora che richiedendo più struttura ai due insiemi tra cui si vuole costruire una connessione di Galois ci basta una delle due aggiunte per definire univocamente l'altra con quella formula.
+\begin{prop}
+	Siano $L_C$, $L_A$ due reticoli completi, e sia $\alpha : L_C \rightarrow L_A$ un omomorfismo di semireticoli completi superiori.
+	Allora, detta
+	\[
+	\gamma(a) = \sup \{ x \in L_C \svert \alpha(x) \preceq a \}
+	\]
+	vale che $L_C (\alpha, \gamma) L_A$ è una connessione di Galois.
+	
+	Viceversa, se $\gamma : L_A \rightarrow L_C$ è un omomorfismo di semireticoli completi inferiori, detta
+	\[
+	\alpha(x) = \inf \{ a \in L_A \svert x \preceq \gamma(a) \}
+	\]
+	si ha che $L_C (\alpha, \gamma) L_A$ è una connessione di Galois.
+\end{prop}
+\begin{proof}
+	Suppongo di avere $\alpha$, la dimostrazione nel caso di $\gamma$ è analoga.
+	Per prima cosa osservo che, presi $a, b \in L_A$ tali che $a \preceq b$ vale
+	\[
+		\{ x \in L_C \svert \alpha(x) \preceq a \} \subseteq \{ x \in L_C \svert \alpha(x) \preceq b \}
+	\]
+	da cui
+	\[
+		\gamma(a) = \sup \{ x \in L_C \svert \alpha(x) \preceq a \} \preceq \sup \{ x \in L_C \svert \alpha(x) \preceq b \} = \gamma(b)
+	\]
+	quindi $\gamma$ è monotona.
+	
+	Siano ora $x \in L_C$ ed $a \in L_A$.
+	Suppongo $\alpha(x) \preceq a$. Allora $x \in \{ y \in L_C \svert \alpha(y) \preceq a \}$, quindi
+	\[
+	x \preceq \sup \{ y \in L_C \svert \alpha(y) \preceq a \} = \gamma(a)
+	\]
+	Viceversa suppongo $x \preceq \gamma(a)$. Allora $x \preceq \sup \{ y \in L_C \svert \alpha(y) \preceq a \}$, da cui per la monotonia di $\alpha$
+	\[
+	\alpha(x) \preceq \alpha(\sup \{ y \in L_C \svert \alpha(y) \preceq a \}) = \sup (\alpha (\{ y \in L_C \svert \alpha(y) \preceq a \}))
+	\]
+	dove la seconda uguaglianza segue dal fatto che $\alpha$ sia un omomorfismo di semireticoli completi superiori. Continuando la catena di uguaglianze
+	\[
+	\sup (\alpha (\{ y \in L_C \svert \alpha(y) \preceq a \})) = \sup (\{ \alpha (y) \svert \alpha(y) \preceq a \}) \preceq a
+	\]
+	dove l'ultima disuguaglianza segue perché $a$ è un maggiorante dell'insieme. Mettendo insieme si trova
+	\[
+	\alpha(x) \preceq a
+	\]
+	
+	Quindi $(\alpha, \gamma)$ è una connessione di Galois.
+\end{proof}
+
+Vediamo ora che i due concetti di connessione di Galois e operatore di chiusura sono strettamente legati, nel senso che si può passare da uno all'altro.
+
+\begin{prop}\label{th:closure-op-to-galois-conn}
+	Sia $S$ un insieme parzialmente ordinato, e sia $\rho : S \rightarrow S$ un operatore di chiusura. Allora $S (\rho, id_S) \rho(S)$ è una connessione di Galois.
+\end{prop}
+\begin{proof}
+	Chiaramente $id_S$ è monotona, e $\rho$ lo è perché è un operatore di chiusura. Per dimostrare che $(\rho, id_S)$ è una connessione di Galois basta quindi verificare che per ogni $x \in S$ e $a \in \rho(S)$, valga
+	\[
+	\rho(x) \preceq a \iff x \preceq id_S(a)
+	\]
+	Se $x \preceq a$ per monotonia di $\rho$ ho $\rho(x) \preceq \rho(a) = a$, dove l'ultima uguaglianza segue perché $\rho$ è idempotente ed $a \in \rho(S)$.
+	Viceversa, dato che $\rho$ è estensiva si ha che $x \preceq \rho(x)$, quindi se $\rho(x) \preceq a$ per transitività $x \preceq a = id_S(a)$.
+\end{proof}
+
+\begin{prop}\label{th:galois-conn-to-closure-op}
+	Sia $S (\alpha, \gamma) T$ una connessione di Galois. Allora $\gamma \circ \alpha : S \rightarrow S$ è un operatore di chiusura.
+\end{prop}
+\begin{proof}
+	Per la definizione di connessione di Galois, $\alpha$ e $\gamma$ sono monotone, quindi lo è anche la loro composizione.
+	La proposizione \ref{th:galois-conn-extensive} dimostra che $\gamma \circ \alpha$ è estensiva.
+	Da questo e dalla monotonia di $\alpha$ segue anche che $\alpha(x) \preceq \alpha(\gamma(\alpha(x)))$
+	Inoltre da quella proposizione segue che $\alpha(\gamma(\alpha(x))) \preceq \alpha(x)$ perché $\alpha \circ \gamma$ è intensiva. Combinando le due relazioni si ha $\alpha(\gamma(\alpha(x))) = \alpha(x)$, da cui segue l'idempotenza di $\gamma \circ \alpha$.
+\end{proof}
+
+\begin{remark}
+	Notare che le due proposizioni precedenti non propongono costruzioni ``inverse", nel senso che applicandone una e poi l'altra non si torna in entrambi i casi al punto di partenza.
+	Partendo da una connessione di Galois $(\alpha, \gamma)$, costruendo l'operatore di chiusura $\gamma \circ \alpha$ e poi ritornando alla connessione di Galois $(\gamma \circ \alpha, id_S)$ non si ritrova la connessione di partenza perché in generale $\gamma(\alpha(S)) \ncong T$.
+	Tuttavia partendo da un operatore di chiusura $\rho$ si costruisce la connessione di Galois $(\rho, id_S)$, da cui si ricostruisce l'operatore di chiusura $id_S \circ \rho = \rho$ da cui si era partiti.
+\end{remark}
+
+Per ``sistemare" questo problema introduciamo la nozione che in realtà vorremo richiedere all'interpretazione astratta:
+\begin{definition}[Inserzione di Galois]
+	Dati due insiemi parzialmente ordinati $S$, $T$, un'inserzione di Galois $(\alpha, \gamma)$ da $S$ a $T$ (o inserzione di Galois di $T$ in $S$) è una connessione di Galois da $S$ a $T$ tale che $\alpha \circ \gamma : T \rightarrow T$ sia l'identità su $T$.
+\end{definition}
+
+Vediamo subito una caratterizzazione delle connessioni di Galois:
+\begin{prop}
+	Sia $S (\alpha, \gamma) T$ una connessione di Galois. Allora le quattro proposizioni seguenti sono equivalenti:
+	\begin{enumerate}[label={(\arabic*)}]
+		\item $(\alpha, \gamma)$ è un'inserzione di Galois
+		\item $\alpha$ è suriettiva
+		\item $\gamma$ è iniettiva
+		\item Detto $S' = im(\gamma \circ \alpha) \subseteq S$, vale $S' \cong T$ come insiemi parzialmente ordinati, $S' = im(\gamma)$, l'isomorfismo è $\gamma: T \rightarrow S'$ e $\gamma^{-1} = \left. \alpha \right|_{S'}$.
+	\end{enumerate}
+\end{prop}
+\begin{proof}
+	Dimostro le implicazioni separatamente.
+	
+	\textit{(1) $\implies$ (2), (3)} $\quad$ Se $(\alpha, \gamma)$ è un'inserzione di Galois allora $\alpha \circ \gamma = id_T$ che è biettiva, quindi $\alpha$ deve essere suriettiva e $\gamma$ iniettiva.
+	
+	\textit{(2) $\implies$ (4)} $\quad$ Sia $S' = im(\gamma \circ \alpha) \subseteq S$ l'immagine di $\gamma \circ \alpha$. Come visto nella dimostrazione della proposizione \ref{th:galois-conn-to-closure-op} vale che $\alpha(\gamma(\alpha(x))) = \alpha(x)$, da cui segue che $im( \left. \alpha \right|_{S'}) = im(\alpha)$. Per la suriettività di $\alpha$ si ha $T = im(\alpha) = im( \left. \alpha \right|_{S'})$.
+	Presi $x, y \in S'$, se $\alpha(x) = \alpha(y)$ vale anche $\gamma(\alpha(x)) = \gamma(\alpha(y))$. Dato però che $\gamma \circ \alpha$ è idempotente (sempre dalla proposizione \ref{th:galois-conn-to-closure-op}) e che $x, y \in S' = im(\gamma \circ \alpha)$ vale $x = \gamma(\alpha(x))$ e $y = \gamma(\alpha(y))$, da cui $x = y$. Quindi $\left. \alpha \right|_{S'}$ è iniettiva.
+	Quindi $\left. \alpha \right|_{S'} : S' \rightarrow T$ è  biettiva e monotona. Inoltre, per l'idempotenza di $\gamma \circ \alpha$ si ha che $\left. \gamma \circ \alpha \right|_{S'} = id_{S'}$, quindi $\gamma$ è l'inversa di $\left. \alpha \right|_{S'}$.
+	Da questo segue che $\left. \alpha \right|_{S'}: S' \rightarrow T$ è un isomorfismo di insiemi parzialmente ordinati dato che la sua inversa $\gamma$ è monotona, e quindi anche $\gamma$ lo è.
+	
+	\textit{(4) $\implies$ (1)} $\quad$ Dato che $\gamma^{-1} = \left. \alpha \right|_{S'}$ e $\gamma: T \rightarrow S'$ si ha che $\alpha \circ \gamma = id_T$.
+	
+	
+	\textit{(3) $\implies$ (1)} $\quad$ Per la proposizione \ref{th:galois-conn-extensive} si ha che $\gamma \circ \alpha$ è estensiva e $\alpha \circ \gamma$ è intensiva. Preso $t \in T$ si ha che $\gamma(t) \in S$, quindi dall'estensività di $\gamma \circ \alpha$ si ottiene che
+	\[
+	\gamma(t) \preceq \gamma(\alpha(\gamma(t)))
+	\]
+	Invece dall'intensività di $\alpha \circ \gamma$ si ottiene
+	\[
+	\alpha(\gamma(t)) \preceq t
+	\]
+	che con la monotonia di $\gamma$ implica
+	\[
+	\gamma(\alpha(\gamma(t))) \preceq \gamma(t)
+	\]
+	Mettendo insieme queste due si ottiene
+	\[
+	\gamma(\alpha(\gamma(t))) = \gamma(t)
+	\]
+	che per l'iniettività di $\gamma$ implica $\alpha(\gamma(t)) = t$. Quindi $\alpha \circ \gamma = id_T$, ovvero $(\alpha, \gamma)$ è un'inserzione di Galois.
+\end{proof}
+
+Ovviamente, visto che un'inserzione di Galois è una connessione di Galois, ne eredità tutte le proprietà, ma ne ha alcune in più, tra cui la corrispondenza diretta con gli operatori di chiusura.
+\begin{remark}
+	Se $(\alpha, \gamma)$ è un'inserzione di Galois di $T$ in $S$ si ha che le due costruzioni delle proposizioni \ref{th:galois-conn-to-closure-op} e \ref{th:closure-op-to-galois-conn} sono effettivamente inverse: data un'inserzione di Galois si costruisce un'operatore di chiusura, da cui poi si può tornare all'inserzione di Galois iniziale tramite l'isomorfismo $S' \cong T$.
+	
+	In questo modo, data una famiglia di Moore, possiamo passare ad un operatore di chiusura e poi ad un'inserzione di Galois. Come vedremo questa è proprio la costruzione che vorremo fare per l'interpretazione astratta.
+\end{remark}
+
+Ovviamente in generale una connessione di Galois non è un'inserzione: basta prendere $\gamma$ non iniettiva, quindi avere due elementi di $T$ che vengono mappati nello stesso elemento di $S$. Come vedremo questo significherà che in interpretazione astratta i due elementi sono ridondanti, e vorremo quindi toglierne uno. La seguente proposizione ci permette di farlo:
+\begin{prop}
+	Sia $S (\alpha, \gamma) T$ una connessione di Galois. Allora, detto
+	\begin{align*}
+		\sigma : \, &T \rightarrow T \\
+		&t \mapsto \inf \{ u \in T \svert \gamma(u) = \gamma(t) \}
+	\end{align*}
+	e detto $\tilde{T} = \sigma(T)$ si ha che $S (\alpha, \left. \gamma \right|_{\tilde{T}}) \tilde{T}$ è un'inserzione di Galois.
+\end{prop}
+\begin{proof}
+	\todo{Scrivere la dim}
+	Per dimostrare che $S (\alpha, \left. \gamma \right|_{\tilde{T}}) \tilde{T}$ è un'inserzione di Galois bisogna mostrare che $\alpha : S \rightarrow \tilde{T}$, che le due funzioni sono monotone e che rispettano la condizione della connessione di Galois. Poi ho gratis dalla definizione che $\left. \gamma \right|_{\tilde{T}}$ è iniettiva, quindi è un'inserzione.
+\end{proof}
+
+\todo{Quali metodi equivalenti di specificare un'inserzione di Galois voglio mettere?}
+
+\subsection{Tex di un articolo}
+Riscrivo le parti che mi interessano per avere una reference unica, e ne faccio un riassunto per sapere anche che parti non ci sono qui. L'articolo in questione è \textit{Systematic design of program analysis framework}, di Patrick e Radhia Cousot.
+
+Interpreteremo la relazione d'ordine dei poset come ``meno grossolano di": $a \preceq b$ significa che $a$ è meno grossolano (più raffinato) di $b$ (è un po' controintuitivo che $a$ sia più raffinato di $b$ se è minore secondo l'ordine ma così va la vita). Quindi $\bot$ è la cosa più raffinata (meno grossolana) di tutte, e $\top$ è la più grossolana.
+
+Definisce operatori di chiusura.
+
+Supponiamo di avere il dominio concreto $C$ e di definirci sopra un operatore di \textit{approssimazione ammissibile}. Non possiamo tenere tutto il dominio nell'analisi (troppo costoso e/o indecidibilità), quindi approssimiamo le informazioni sullo stato del programma ad un sottoinsieme $\bar{A} \subseteq C$ che possiamo gestire più semplicemente (per esempio, se $C = \pow{\mathbb{Z}}$ un $\bar{A}$ abbastanza utilizzato è quello degli intervalli).
+Vorremmo alcune proprietà da questo sottoinsieme $\bar{A}$.
+Per ogni elemento del dominio concreto vorremmo un elemento che lo approssimi correttamente nel sottoinsieme.
+Inoltre supponiamo di dover unire più program path ad un certo punto: questi arriveranno con più approssimazioni dello stato, e per unirle vorremmo usare la migliore approssimazione di tutte loro. Questo concetto corrisponde con l'$\inf$ dell'insieme delle approssimazioni, quindi una richiesta ragionevole è che in $\bar{A}$ esistano $\inf$ di insiemi arbitrari.
+
+Estendendo leggermente queste richieste si ha la definizione di famiglia di Moore. Infatti se $\bar{A}$ contiene $\sup(C)$ in automatico contiene un'approssimazione di ogni elemento di $C$.
+
+Definisce operatore di approssimazione e dimostra le relazioni tra operatori di chiusura, famiglie di Moore e operatori di approssimazione.
+
+Definisce le connessioni di Galois e le relazioni con gli operatori di chiusura, proprietà delle connessioni di Galois.
+
+Fa vedere che se $\gamma$ non è iniettiva può costruire un'altro dominio astratto quozientando per $\gamma(a) = \gamma(b)$ e gli viene un'inserzione di Galois. Poi dimostra che questo è il modo minimale (per cardinalità) di farlo.
+
+Seguono un po' di supercazzole su come tirare fuori operatori di chiusura/famiglie di Moore da operatori a caso, componendo operatori di chiusura, da relazioni di equivalenza semicomplete superiori, da famiglie di ideali principali.
+
+\subsection{Punti fissi}
+\begin{definition}[Punto fisso]
+	Sia $S$ un insieme, e sia $\varphi : S \rightarrow S$ una funzione. Un punto fisso di $\varphi$ è un elemento $x \in S$ tale che $\varphi(x) = x$.
+	
+	Indichiamo con $fix(\varphi)$ l'insieme dei punti fissi di $\varphi$.
+\end{definition}
+
+Vogliamo ora identificare dei punti fissi particolari: se $S$ è un insieme parzialmente ordinato possiamo considerare massimo e minimo di $fix(\varphi)$, ammesso che esistano. Lo scopo di questa sezione sarà proprio di dare condizioni per cui esistano un minimo e/o un massimo punto fisso.
+
+Possiamo ora enunciare e dimostrare il primo dei due teoremi di questa sezione:
+\begin{theorem}[Tarski]
+	Sia $L$ un reticolo completo, e sia $\varphi : L \rightarrow L$ una funzione monotona. Allora il minimo punto fisso di $\varphi$ è $\inf \{ l \in L \svert \varphi(l) \preceq l \}$ e analogamente il massimo punto fisso è $\sup \{ l \in L \svert l \preceq \varphi(l) \}$.
+	Inoltre l'insieme $fix(\varphi)$ è un reticolo completo.
+\end{theorem}
+\begin{proof}
+	Sia $D = \{ l \in L \svert l \preceq \varphi(l) \}$, e sia $s = \sup(D)$, che esiste perché $L$ è un reticolo completo.
+	Dato che $s$ è un maggiorante di $D$, preso $l \in D$ vale $l \preceq s$, da cui, per la monotonia di $\varphi$, $\varphi(l) \preceq \varphi(s)$. Ma dato che $l \in D$ vale $l \preceq \varphi(l) \preceq \varphi(s)$, quindi anche $\varphi(s)$ è un maggiorante di $D$. Dato che $s$ è il minimo dei maggioranti si ha $s \preceq \varphi(s)$, quindi $s \in D$.
+	Se $l \in D$ allora $l \preceq \varphi(l)$ da cui $\varphi(l) \preceq \varphi(\varphi(l))$, quindi anche $\varphi(l) \in D$. In particolare $\varphi(s) \in D$. Ma dato che $s$ è un maggiorante di $D$ si ha $\varphi(s) \preceq s$, da cui $s = \varphi(s)$. Quindi $s$ è un punto fisso.
+	Sia $x \in fix(\varphi)$. Allora $x = \varphi(x)$, quindi anche $x \preceq \varphi(x)$, da cui $x \in D$, ovvero $x \preceq \sup(D) = s$. Quindi $s$ è il massimo di $fix(\varphi)$.
+	
+	Analogamente, detto $U = \{ l \in L \svert \varphi(l) \preceq l \}$ si ha che $\inf(U)$ è il minimo dei punti fissi di $\varphi$.
+	
+	Devo ora dimostrare che $fix(\varphi)$ è un reticolo completo.
+	
+	Sia quindi $P \subseteq fix(\varphi)$ un insieme. Dato che $L$ è un reticolo completo deve esistere $w = \sup_L(P)$. Considero allora l'insieme $W = \{ l \in L \svert w \preceq l \}$. Questo è l'intervallo di estremi $w$ e $\sup_L(L)$, e quindi è un reticolo completo per quanto visto nell'esempio \ref{ex:intervallo}.
+	Inoltre per monotonia di $\varphi$ si ha che, per ogni $x \in P$ vale $x = \varphi(x) \preceq \varphi(w)$, quindi $\varphi(w)$ è un maggiorante di $P$ e perciò $w \preceq \varphi(w)$.
+	
+	Considero ora $x \in W$. Per definizione $w \preceq x$, per cui dalla monotonia di $\varphi$ si ha $w \preceq \varphi(w) \preceq \varphi(x)$, perciò $\varphi(x) \in W$. Quindi $\varphi$ può essere ristretta ad una funzione $\varphi : W \rightarrow W$, che è un reticolo completo.
+	Per quanto appena dimostrato $\varphi$ deve avere un minimo punto fisso in $W$, sia questo $\hat{w}$. Allora $\hat{w} = \sup_{fix(\varphi)}(P)$ perché, preso un qualsiasi punto fisso $f$ che sia un maggiorante di $P$, deve valere che è maggiore di $\sup_L(P) = w$, quindi appartiene a $W$, e quindi deve essere maggiore del minimo punto fisso di $\varphi$ in $W$, che è proprio $\hat{w}$.
+	
+	Quindi per ogni sottoinsieme $P \subseteq fix(\varphi)$ questo ammette estremo superiore. Per la proposizione \ref{th:complete-semilattice-to-complete-lattice} $fix(\varphi)$ è un reticolo completo.
+\end{proof} 
+
+Questo teorema è molto interessante perché dimostra l'esistenza di minimo e massimo punto fisso (dato che $fix(\varphi)$ è un reticolo completo non può essere vuoto), ma non è costruttivo, e quindi non può essere utilizzato per trovare questi punti fissi. Il secondo teorema che esporremo in questa sezione è invece costruttivo.
+
+\begin{definition}[Funzione Scott-continua]
+	Siano $S_1$, $S_2$ due insiemi parzialmente ordinati, e sia $\varphi : S_1 \rightarrow S_2$ una funzione.
+	
+	$\varphi$ si dice Scott-continua se, per ogni catena $C \subseteq S_1$ che ammette estremo superiore, esiste l'estremo superiore $\sup(\varphi(C))$ e vale $\sup(\varphi(C)) = \varphi(\sup(C))$.
+\end{definition}
+
+In pratica una funzione $\varphi$ continua preserva i $\sup$, anche se solo per insiemi di partenza ``buoni".
+
+In letteratura la definizione di funzione continua è un po' più forte di questa, perché richiede che preservi i $\sup$ di tutti i sottoinsiemi diretti, di cui le catene sono un caso particolare. Di nuovo non parleremo di insiemi diretti e questa definizione è sufficiente a dimostrare il teorema del punto fisso di Kleene, che è il motivo per cui abbiamo introdotto le funzioni continue.
+
+\begin{lemma}
+	Sia $\varphi : S_1 \rightarrow S_2$ una funzione continua. Allora $\varphi$ è monotona.
+\end{lemma}
+\begin{proof}
+	Siano $a, b \in S_1$ due elementi tali che $a \preceq b$, e si consideri la catena $C = \{ a, b \}$. Chiaramente $\sup(C) = b$. Per la continuità di $\varphi$ si ha che $\sup(\varphi(C)) = \varphi(\sup(C)) = \varphi(b)$, che è quindi maggiore di ogni elemento di $\varphi(C) = \{ \varphi(a), \varphi(b) \}$, perciò $\varphi(a) \preceq \varphi(b)$.
+\end{proof}
+
+Enunciamo quindi il secondo teorema di questa sezione:
+\begin{prop}
+	Sia $S$ un insieme parzialmente ordinato con minimo $\bot$, e sia $\varphi: L \rightarrow L$ una funzione continua. Detto inoltre
+	\begin{align*}
+		C &= \left\lbrace \varphi^n (\bot) \svert n \in \setN \right\rbrace
+	\end{align*}
+	suppongo che esista $\sup(C)$ in $S$.
+	
+	Allora $\sup(C)$ è il minimo punto fisso di $\varphi$.
+\end{prop}
+\begin{proof}
+	Dimostro per induzione su $n$ che $\varphi^n(\bot) \preceq \varphi^{n+1}(\bot)$. Il passo base $n = 0$ è vero perché per definizione $\bot$ è minore di qualsiasi elemento di $S$, incluso $\varphi(\bot)$. Il passo induttivo segue dalla monotonia di $\varphi$ (che a sua volta segue dalla continuità per il lemma precedente) e dall'ipotesi induttiva.
+
+	L'insieme $C$ è quindi una catena. Se $\varphi(\bot) \neq \bot$ vale
+	\[
+	\varphi(C) = C \setminus \{ \bot \}
+	\]
+	altrimenti
+	\[
+	\varphi(C) = C = \{ \bot \}
+	\]
+	In entrambi i casi $\sup(\varphi(C)) = \sup(C)$ (che esiste per ipotesi), mentre per la continuità di $\varphi$ si ha $\sup(\varphi(C)) = \varphi(\sup(C))$. Combinandole si ottiene $\sup(C) = \varphi(\sup(C))$, quindi $\sup(C)$ è un punto fisso.
+	
+	Considero ora un qualsiasi altro punto fisso $x$. Dimostro per induzione su $n$ che $\varphi^n(\bot) \preceq x$. Il passo base $n = 0$ segue dalla definizione di $\bot$.
+	Il passo induttivo segue dall'ipotesi induttiva e dalla monotonia di $\varphi$, ricordando che $\varphi(x) = x$ perché $x$ è un punto fisso.
+	Quindi $x$ è un maggiorante della catena $C$.
+	
+	Da questo e dalla definizione di estremo superiore segue che $\sup(C) \preceq x$. Dato che questo vale per ogni punto fisso, $\sup(C)$ è il minimo punto fisso di $\varphi$.
+\end{proof}
+
+La catena $C = \left\lbrace \varphi^n (\bot) \svert n \in \setN \right\rbrace$ viene anche chiamata catena ascendente di Kleene di $S$.
+
+Si può definire analogamente la catena discendente di Kleene di $S$ come $\left\lbrace \varphi^n (\top) \svert n \in \setN \right\rbrace$ e, con una dimostrazione analoga, trovare che il suo estremo inferiore è il massimo punto fisso di $\varphi$.
+
+Combinando questi due fatti si ottiene il
+
+\begin{corollary}[Teorema del punto fisso di Kleene]
+	Sia $L$ un reticolo completo, e sia $\varphi : L \rightarrow L$ una funzione continua. Allora
+	\begin{align*}
+		\min(fix(\varphi)) &= \sup \left\lbrace \varphi^n (\bot) \svert n \in \setN \right\rbrace \\
+		\max(fix(\varphi)) &= \inf \left\lbrace \varphi^n (\top) \svert n \in \setN \right\rbrace
+	\end{align*}
+\end{corollary}
+
+\subsection{Interpretazione astratta}
+L'interpretazione astratta (\textit{abstract interpretation}) è una teoria generale che tratta di approssimazioni valide di programmi basata su funzioni monotone su insiemi parzialmente ordinati. L'idea è di scegliere alcune caratteristiche del programma da astrarre ed ``eseguirlo" considerando solo queste, riducendo così il peso computazionale. Questa scelta determina quali informazioni si possono poi ottenere dall'analisi, ma è la teoria dell'interpretazione astratta a garantire che le informazioni sono valide (in un senso che specificheremo successivamente).
+
+Per decidere se un'interpretazione astratta di un programma è ``corretta" abbiamo per prima cosa bisogno di un'interpretazione ``concreta" di un programma. Per noi anche questa resterà sempre abbastanza astratta nelle definizioni, ma cercheremo di darne un esempio concreto. Come vedremo anche questa semantica è in un certo senso un'interpretazione astratta del programma.
+
+L'interpretazione astratta non è di suo limitata all'uso su linguaggi di programmazione imperativi, ma a nostro avviso gli esempi risultano più chiari in questo caso. Nel corso di questa sezione utilizzeremo come modello per gli esempi un semplice linguaggio imperativo.
+\begin{example}
+	Il linguaggio è definito da una sintassi C-like con solo variabili intere, espressioni aritmetiche e booleane, assegnamenti, concatenazione sequenziale (il \code{;}) e i costrutti \code{if} e \code{while}.
+
+	Per esempio il codice
+	\begin{minted}{C}
+x = n;
+y = 1;
+while (x > 0) {
+	y = y * x;
+	x = x - 1;
+}
+return y;
+	\end{minted}
+	è valido nel linguaggio e calcola il fattoriale di \code{n}, assunta come variabile in input.
+
+	Notare che un tale linguaggio è comunque Turing-completo.
+	
+	Una ``semantica concreta" che possiamo dare a questo linguaggio è la traccia degli ambienti, ovvero assegnamenti di valori a tutte le variabili, all'uscita da ogni statement che l'esecuzione attraversa con un certo input. Per esempio la traccia all'input $n = 2$ sarebbe (indicando la coppia $(x, y)$
+	\[
+	(2, \bot), (2, 1), (2, 2), (1, 2), (1, 2), (0, 2)
+	\]
+	
+	Come vedremo questa non è esattamente la semantica del programma.
+\end{example}
+
+Una semantica è una caratterizzazione matematica del comportamento di un programma. Per noi sarà una funzione che, preso uno stato iniziale restituisce lo stato finale che il programma raggiunge se eseguito a partire da quello stato. Nonostante il termine ``stato" vedremo che questa definizione si può applicare bene anche a programmi funzionali.
+
+\begin{definition}[Stato e semantica di un programma]
+	Dato un linguaggio di programmazione, sia $L \cup \{ \bot \}$ un insieme di stati che un programma in quel linguaggio può raggiungere.
+	Dato un programma $\mathcal{P}$ in quel linguaggio, una sua semantica è la funzione $\llbracket \mathcal{P} \rrbracket : L \rightarrow L$ che associa ad ogni stato iniziale lo stato finale (eventualmente $\bot$) che il programma raggiungere se viene eseguito sullo stato passato.
+	La semantica dev'essere composizionale, ovvero la semantica della composizione di due programmi (la definizione di composizione dipende dal linguaggio) deve corrispondere alla composizione (come funzioni) delle semantiche dei programmi.
+\end{definition}
+
+In questo senso denotazionale di semantica si possono facilmente modellare anche programmi funzionali. Un programma funzionale può essere descritto come $p: I \rightarrow O$ una funzione che associa ai possibili input un output (si suppone che sia $I$ che $O$ contengano $\bot$). Allora si considera $L = I \cup O$ e $\llbracket p \rrbracket: L \rightarrow L$ la sua semantica come $p$ sugli elementi di $I$ e $\bot$ su tutti gli altri elementi di $L$.
+In questo caso, usando come composizione di programmi funzionali la composizione di funzioni, è chiaro che la loro semantica è composizionale.
+
+\begin{example}
+	La semantica delle tracce del linguaggio di esempio si può formalizzare come segue.
+	Si prende come $L$ l'insieme di tutte le possibili tracce finite più $\bot$. La semantica dei costrutti elementari si ottiene facendo ritornare l'intera traccia ed ``eseguendo l'istruzione" sull'ultimo stato della traccia di input. Dalla composizionalità (che a livello del linguaggio è data dal \code{;}) si ottiene così la semantica di tutti i programmi.
+	
+	Come esempio si riporta la definizione della semantica di un assegnamento \code{x = v}:
+	\begin{equation*}
+		\llbracket \code{x = v} \rrbracket (T, e) = \begin{cases*}
+			\bot & if $e = \bot$ \\
+			(T, e, e[x \leftarrow v]) & otherwise
+		\end{cases*}
+	\end{equation*}
+	dove con $(T, e)$ indichiamo una traccia di ambienti in cui $e$ è l'ultimo ambiente della traccia.
+	Come si può notare la semantica ritorna l'intera traccia che ha ricevuto in input estesa con il nuovo ambiente creato dall'assegnamento a partire dall'ultimo ambiente della traccia di input.
+\end{example}
+
+Possiamo quindi definire le interpretazioni astratte
+\begin{definition}[Interpretazione astratta]
+	Un'interpretazione astratta di un linguaggio di programmazione è una sua semantica $\llbracket \cdot \rrbracket$ in cui $L$ sia un reticolo completo e tale che la semantica dei costrutti base del linguaggio sia monotona.
+\end{definition}
+
+Indicheremo spesso un'interpretazione astratta con il reticolo $L$ degli stati. Nonostante questo abuso di notazione sarà sempre chiaro a che linguaggio e a che semantica ci stiamo riferendo.
+
+L'ordinamento che abbiamo richiesto sul dominio astratto $L$ è un ``raffinamento" e ci serve per parlare di proprietà: lo scegliamo in modo che le proprietà che ci interessano ``seguano" l'ordinamento, ovvero se un certo stato ha una certa proprietà anche quelli minori di lui (più ``raffinati") hanno la stessa proprietà.
+
+\begin{prop}
+	La semantica di un programma $\llbracket \mathcal{P} \rrbracket$ è monotona.
+\end{prop}
+\begin{proof}
+	Per induzione strutturale sulla sintassi del programma: i costrutti base hanno una semantica monotona per definizione, e la loro composizione corrisponde alla composizione come funzioni delle semantiche. Dato che la composizione di funzioni monotone è monotona si ha la tesi.
+\end{proof}
+
+Questa definizione di per se include quasi tutte le semantiche ``concrete" dei linguaggi di programmazione, ma non risulta molto utile. Quello che invece la rende generale è la possibilità di definire un relazione ``più astratta di" tra semantiche che però preservi la validità delle approssimazioni.
+
+\begin{definition}[Interpretazioni consistenti]
+	Date due interpretazioni $L$, $L'$ (chiamate rispettivamente interpretazione ``concreta" e ``astratta", anche se sono entrambe interpretazioni astratte) per un linguaggio, si dice che $L'$ è consistente con $L$ se esiste una coppia di funzioni
+	\[ (\alpha: L \rightarrow L', \gamma: L' \rightarrow L) \]
+	chiamate rispettivamente funzione di astrazione e di concretizzazione tali che:
+	\begin{enumerate}
+		\item $\alpha$ e $\gamma$ sono monotone
+		\item $\forall x' \in L'. \, x' = \alpha(\gamma(x'))$
+		\item $\forall x \in L. \, x \preceq \gamma(\alpha(x))$
+		\item per ogni programma $\mathcal{P}$ e per ogni input concreto $x \in L$ vale $\alpha(\llbracket \mathcal{P} \rrbracket(x)) \preceq \llbracket \mathcal{P} \rrbracket'(\alpha(x))$
+	\end{enumerate}
+\end{definition}
+
+La definizione precedente merita un'analisi un po' più approfondita.
+L'idea è di avere un'interpretazione concreta del linguaggio e di voler considerare solo alcune caratteristiche evidenziate da essa, riducendosi così ad un'interpretazione più astratta. Per farlo si fanno corrispondere gli stati concreti con quelli astratti tramite due funzioni $\alpha$ e $\gamma$.
+
+La richiesta di monotonia si giustifica perché vogliamo che (almeno in parte) le proprietà vengano conservate tra dominio concreto e astratto: se uno stato concreto è più raffinato di un altro, vogliamo che venga astratto in qualcosa che non sia meno raffinato.
+
+Il punto 2 specifica che la concretizzazione non perde informazione: dato che il dominio astratto è quello più ``debole" vogliamo che il passaggio dall'astratto al concreto sia preciso. Notare che questo implica che $\gamma$ sia iniettiva (due elementi astratti diversi si concretizzano in due cose distinte, quindi senza perdere informazione) e $\alpha$ suriettiva (non ci interessano stati astratti che non corrispondono a nessuno stato concreto).
+
+Il punto 3 specifica che il dominio astratto è più debole, ma introduce approssimazioni sicure: astraendo ottengo uno stato astratto che non corrisponde per forza allo stato concreto, ma se la sua concretizzazione ha una proprietà allora deve averla anche lo stato di partenza.
+
+Il punto 4 lega le due interpretazioni a comportarsi in modo compatibile rispetto al linguaggio di programmazione: se un programma eseguito su uno stato concreto $x$ raggiunge un certo stato, allora l'astrazione del programma eseguita sull'astrazione dello stato deve raggiungere uno stato astratto compatibile con quello concreto. Come stato compatibile non si richiede che sia proprio l'astrazione di quello completo perché anche l'astrazione del programma potrebbe perdere informazione, quindi ci si accontenta che sia meno raffinato dell'astrazione dello stato concreto.
+
+
+
+\subsection{Sistemi di tipo}
+
+
+\end{document}
